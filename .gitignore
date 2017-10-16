@@ -1,0 +1,6 @@
+data/
+data/*
+nbproject/
+nbproject/*
+__pycache__/*
+nb-configuration.xml
