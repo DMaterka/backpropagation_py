@@ -6,7 +6,7 @@ import numpy as np
 import sqlite3
 import random
 
-debug = 0
+debug = 1
 
 class Neuron:
 	    #basic type
@@ -20,7 +20,7 @@ class Neuron:
 	    def setValue(self, value):
 			   self.value = value
 			   if debug:
-							 print("I set a value of " + str(value) + " of neuron " + str(self) )
+							 print("I assign a value " + str(value) + " of neuron " + str(self) )
 	    def getValue(self):
 			   return self.value
 class Layer:
@@ -29,17 +29,24 @@ class Layer:
 	    # set neurons' values 
 	    # 
 	    neurons = {}
+	    layerSum = 0
 	    def __init__(self):
 			   pass
-	    def setNeurons(self, length):
-			   self.neurons = [Neuron() for i in range(length)]
-			   for i in range(length):
+	    def setNeurons(self, values):
+			   self.neurons = [Neuron() for i in range(len(values))]
+			   lsum = 0
+			   for i in range(len(self.neurons)):
 					  if debug:
 							 print("I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
-					  self.neurons[i].setValue(random.random())		 
-	    def getNeurons(self,id):		   
-			   return self.neurons[id]
-
+					  self.neurons[i].setValue(values[i])	
+	    def getNeurons(self):		   
+			   return self.neurons
+	    
+	    def getValues(self):
+			   tmparr = []
+			   for i in (range(len(self.neurons))):
+					  tmparr.append(self.neurons[i].getValue())
+			   return tmparr		
 class Net:
 	    # contains layers
 	    # make a forward and backpropagation
@@ -50,7 +57,7 @@ class Net:
 	    layers = {}
 	    
 	    def __init__(self,structure,name):
-			   self.structure = structure
+			   self.structure = cfg.Structure()
 			   self.setName(name)
 			   self.buildArray()
 	    def setDimensionNumber(self, dims):
@@ -62,17 +69,23 @@ class Net:
 	    def getName(self):	   
 			   return self.name
 	    def buildArray(self):
-			   self.layers = [Layer() for i in range(len(self.structure.dimensionsdef))]
-			   for i in range(len(self.layers)):
+			   
+			   self.layers = [Layer() for i in range(0,len(self.structure.dimensionsdef))]
+			   if debug:
+							 print("I set the " + str(0) + " layer: " + str(self.layers[0]) + " of network " + str(self))
+			   self.layers[0].setNeurons([1,1])
+			   
+			   for i in range(1,len(self.layers)):
 					  #self.layers[i] = Layer(str(i))
 					  if debug:
 							 print("I set the " + str(i) + " layer: " + str(self.layers[i]) + " of network " + str(self))
-					  layerLength = self.structure.dimensionsdef[i]
-					  self.layers[i].setNeurons(layerLength)
+							 
+					  values = np.dot(self.structure.weights[i], self.layers[i-1].getValues())
+					  self.layers[i].setNeurons(values)
 	    def forwardPropagate(self):
 			   pass
-	    def backPropagate(self):
-			   pass
+#	    def backPropagate(self):
+#			   pass
 					  
 class ActivationFn():
 	    @staticmethod
@@ -84,6 +97,8 @@ class ActivationFn():
 			   return (__class__.sigmoid(x))*(1-__class__.sigmoid(x))
 			   
 net = Net(cfg.Structure,"name")
+
+net.forwardPropagate();
 
 conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)
 
