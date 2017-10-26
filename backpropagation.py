@@ -20,9 +20,15 @@ class Neuron:
 	    def setValue(self, value):
 			   self.value = value
 			   if debug:
-							 print("I assign a value " + str(value) + " of neuron " + str(self) )
+							 print("   I assign a value of " + str(value) + " to the neuron " + str(self) )
 	    def getValue(self):
 			   return self.value
+	    def setSum(self, sum):
+			   self.sum = sum
+			   if debug:
+							 print("   I assign a sum of " + str(sum) + " to the neuron " + str(self) )
+	    def getSum(self):
+			   return self.sum					 
 class Layer:
 	    #
 	    # Get number of neurons
@@ -32,13 +38,16 @@ class Layer:
 	    layerSum = 0
 	    def __init__(self):
 			   pass
-	    def setNeurons(self, values):
-			   self.neurons = [Neuron() for i in range(len(values))]
-			   lsum = 0
+	    def setNeurons(self, sums, immutable = 0):
+			   self.neurons = [Neuron() for i in range(len(sums))]
 			   for i in range(len(self.neurons)):
 					  if debug:
-							 print("I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
-					  self.neurons[i].setValue(values[i])	
+							 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
+					  self.neurons[i].setSum(sums[i])
+					  if immutable != 1:
+							 self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))	
+					  else:
+							 self.neurons[i].setValue(sums[i])
 	    def getNeurons(self):		   
 			   return self.neurons
 	    
@@ -73,15 +82,18 @@ class Net:
 			   self.layers = [Layer() for i in range(0,len(self.structure.dimensionsdef))]
 			   if debug:
 							 print("I set the " + str(0) + " layer: " + str(self.layers[0]) + " of network " + str(self))
-			   self.layers[0].setNeurons([1,1])
+			   self.layers[0].setNeurons([1,1],1)
 			   
-			   for i in range(1,len(self.layers)):
+			   for i in range(1,len(self.layers)+1):
 					  #self.layers[i] = Layer(str(i))
 					  if debug:
-							 print("I set the " + str(i) + " layer: " + str(self.layers[i]) + " of network " + str(self))
-							 
+							 print("I set the " + str(i) + " layer: " + str(self.layers[i-1]) + " of network " + str(self))
+					  #produce neurons' sums		 
 					  values = np.dot(self.structure.weights[i], self.layers[i-1].getValues())
-					  self.layers[i].setNeurons(values)
+					  if i != len(self.layers):
+							 self.layers[i].setNeurons(values)
+					  else:
+							 self.layers[i-1].setNeurons(values)
 	    def forwardPropagate(self):
 			   pass
 #	    def backPropagate(self):

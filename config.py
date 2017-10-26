@@ -19,4 +19,4 @@ class Structure:
 			   #self.weights = np.random.rand(self.dimensionsdef)
 			   self.weights[1] = np.array([[0.8, 0.2],[0.4, 0.9],[0.9, 0.5]])
 			   self.weights[2] = np.array([[0.3,0.76, 0.1],[0.5,0.6,0.4]])
-			   self.weights[3] = np.array([[0.7],[0.3]])
+			   self.weights[3] = np.array([[0.7], [0.3]]).transpose()
