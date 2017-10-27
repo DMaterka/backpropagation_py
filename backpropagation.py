@@ -65,12 +65,13 @@ class Net:
 	    structure = []
 	    layers = {}
 	    deltaOutputSum = 0 
+	    error = 0
 	    
 	    def __init__(self,structure,name):
 			   self.structure = cfg.Structure()
 			   self.setName(name)
 			   self.forwardPropagate()
-			   #self.backPropagate()
+			   self.backPropagate()
 	    def setDimensionNumber(self, dims):
 			   self.dims = dims
 	    def getDimensionNumber(self):	   
@@ -98,8 +99,15 @@ class Net:
 							 print("I set the " + str(i+1) + " layer: " + str(self.layers[i]) + " of network " + str(self))
 			   value = np.dot(self.structure.weights[len(self.structure.weights)], self.layers[i].getValues())
 			   self.layers[i+1].setNeurons(value)
-#	    def backPropagate(self):
-#			   pass
+			   self.error = abs(0 - value)
+			   
+	    def backPropagate(self):
+			   deltaOutputSum = ActivationFn().sigmoidprime(self.layers[len(self.layers)-1].getValues()[0]) * self.error
+			   print(deltaOutputSum)
+			   weightsDiff = deltaOutputSum / self.structure.weights[len(self.structure.weights)]
+			   print(weightsDiff)
+			   self.structure.weights[len(self.structure.weights)] = self.structure.weights[len(self.structure.weights)] + weightsDiff
+			   print(self.structure.weights[len(self.structure.weights)])
 					  
 class ActivationFn():
 	    @staticmethod
@@ -108,7 +116,7 @@ class ActivationFn():
 	    
 	    @staticmethod
 	    def sigmoidprime(x):
-			   return (__class__.sigmoid(x))*(1-__class__.sigmoid(x))
+			   return (__class__.sigmoid(x))*(1 - __class__.sigmoid(x))
 			   
 net = Net(cfg.Structure,"name")
 
