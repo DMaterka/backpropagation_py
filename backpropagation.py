@@ -64,11 +64,13 @@ class Net:
 	    name = ''	 
 	    structure = []
 	    layers = {}
+	    deltaOutputSum = 0 
 	    
 	    def __init__(self,structure,name):
 			   self.structure = cfg.Structure()
 			   self.setName(name)
-			   self.buildArray()
+			   self.forwardPropagate()
+			   #self.backPropagate()
 	    def setDimensionNumber(self, dims):
 			   self.dims = dims
 	    def getDimensionNumber(self):	   
@@ -77,25 +79,25 @@ class Net:
 			   self.name = name
 	    def getName(self):	   
 			   return self.name
-	    def buildArray(self):
-			   
-			   self.layers = [Layer() for i in range(0,len(self.structure.dimensionsdef))]
+	    def forwardPropagate(self):
+			   self.layers[0] = Layer() 
 			   if debug:
 							 print("I set the " + str(0) + " layer: " + str(self.layers[0]) + " of network " + str(self))
 			   self.layers[0].setNeurons([1,1],1)
 			   
-			   for i in range(1,len(self.layers)+1):
-					  #self.layers[i] = Layer(str(i))
+			   for i in range(1,len(self.structure.dimensionsdef)-1):
+					  self.layers[i] = Layer()
 					  if debug:
 							 print("I set the " + str(i) + " layer: " + str(self.layers[i-1]) + " of network " + str(self))
-					  #produce neurons' sums		 
+					  #produce neurons' sums		
 					  values = np.dot(self.structure.weights[i], self.layers[i-1].getValues())
-					  if i != len(self.layers):
-							 self.layers[i].setNeurons(values)
-					  else:
-							 self.layers[i-1].setNeurons(values)
-	    def forwardPropagate(self):
-			   pass
+					  self.layers[i].setNeurons(values)
+			   			 
+			   self.layers[i+1] = Layer()
+			   if debug:
+							 print("I set the " + str(i+1) + " layer: " + str(self.layers[i]) + " of network " + str(self))
+			   value = np.dot(self.structure.weights[len(self.structure.weights)], self.layers[i].getValues())
+			   self.layers[i+1].setNeurons(value)
 #	    def backPropagate(self):
 #			   pass
 					  
@@ -110,7 +112,7 @@ class ActivationFn():
 			   
 net = Net(cfg.Structure,"name")
 
-net.forwardPropagate();
+#net.forwardPropagate();
 
 conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)
 
