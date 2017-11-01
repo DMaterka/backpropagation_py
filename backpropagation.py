@@ -55,7 +55,12 @@ class Layer:
 			   tmparr = []
 			   for i in (range(len(self.neurons))):
 					  tmparr.append(self.neurons[i].getValue())
-			   return tmparr		
+			   return tmparr	
+	    def getSums(self):
+			   tmparr = []
+			   for i in (range(len(self.neurons))):
+					  tmparr.append(self.neurons[i].getSum())
+			   return tmparr
 class Net:
 	    # contains layers
 	    # make a forward and backpropagation
@@ -63,15 +68,19 @@ class Net:
 	    dims = 0
 	    name = ''	 
 	    structure = []
+	    weights = []
 	    layers = {}
 	    deltaOutputSum = 0 
 	    error = 0
 	    
 	    def __init__(self,structure,name):
 			   self.structure = cfg.Structure()
+			   self.weights = self.structure.weights
 			   self.setName(name)
-			   self.forwardPropagate()
-			   self.backPropagate()
+			   for i in range(1,self.structure.numit):
+					  self.forwardPropagate()
+					  self.backPropagate()
+					  
 	    def setDimensionNumber(self, dims):
 			   self.dims = dims
 	    def getDimensionNumber(self):	   
@@ -99,19 +108,20 @@ class Net:
 							 print("I set the " + str(i+1) + " layer: " + str(self.layers[i]) + " of network " + str(self))
 			   value = np.dot(self.structure.weights[len(self.structure.weights)], self.layers[i].getValues())
 			   self.layers[i+1].setNeurons(value)
-			   self.error = abs(0 - value)
+			   self.error = 0 - self.layers[i+1].getNeurons()[0].getValue()
 			   
 	    def backPropagate(self):
-			   deltaOutputSum = ActivationFn().sigmoidprime(self.layers[len(self.layers)-1].getValues()[0]) * self.error
-			   print(deltaOutputSum)
-			   weightsDiff = deltaOutputSum / self.structure.weights[len(self.structure.weights)]
-			   print(weightsDiff)
-			   self.structure.weights[len(self.structure.weights)] = self.structure.weights[len(self.structure.weights)] + weightsDiff
-			   print(self.structure.weights[len(self.structure.weights)])
-					  
+			   deltaOutputSum = ActivationFn().sigmoidprime(self.layers[len(self.layers)-1].getSums()[0]) * self.error
+			   deltaWeights = deltaOutputSum / self.layers[len(self.layers)-2].getValues()
+			   deltaHiddenSum = deltaOutputSum / self.weights[len(self.weights)] * ActivationFn().sigmoidprime(self.layers[len(self.layers)-2].getSums())
+			   self.weights[len(self.weights)] = self.weights[len(self.weights)] + deltaWeights
+
+			   deltaWeigths1 = np.tile(deltaHiddenSum,(np.size([1,1]),1)).transpose() / np.array([[1,1]])
+			   self.weights[len(self.weights)-1] = self.weights[len(self.weights)-1] + deltaWeigths1
 class ActivationFn():
 	    @staticmethod
 	    def sigmoid(x):
+			   x = np.array(x)
 			   return 1/(1+np.exp(-x))
 	    
 	    @staticmethod
