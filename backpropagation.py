@@ -117,13 +117,14 @@ class Net:
 			   deltaSum = ActivationFn().sigmoidprime(self.layers[i].getSums()[0]) * self.error
 			   deltaWeights = deltaSum / self.layers[i-1].getValues()
 			   
-			   deltaSum = deltaSum / self.weights[i] * ActivationFn().sigmoidprime(self.layers[(i-1)].getSums())
+			   for j in range(2,1,-1):
+					  deltaSum = deltaSum / self.weights[j] * ActivationFn().sigmoidprime(self.layers[(j-1)].getSums())
 			   
-			   self.weights[i] = self.weights[i] + deltaWeights
-			   deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(i-2)].getValues()),1)).transpose() / np.array(self.layers[(i-2)].getValues())
-			   self.weights[i-1] = self.weights[i-1] + deltaWeigths
+					  self.weights[j] = self.weights[j] + deltaWeights
+					  deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(j-2)].getValues()),1)).transpose() / np.array(self.layers[(j-2)].getValues())
+					  self.weights[j-1] = self.weights[j-1] + deltaWeigths
 			   
-			   print(self.weights)
+					  print(self.weights)
 class ActivationFn():
 	    @staticmethod
 	    def sigmoid(x):
