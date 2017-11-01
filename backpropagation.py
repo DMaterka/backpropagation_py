@@ -6,7 +6,7 @@ import numpy as np
 import sqlite3
 import random
 
-debug = 1
+debug = 0
 
 class Neuron:
 	    #basic type
@@ -111,13 +111,19 @@ class Net:
 			   self.error = 0 - self.layers[i+1].getNeurons()[0].getValue()
 			   
 	    def backPropagate(self):
-			   deltaOutputSum = ActivationFn().sigmoidprime(self.layers[len(self.layers)-1].getSums()[0]) * self.error
-			   deltaWeights = deltaOutputSum / self.layers[len(self.layers)-2].getValues()
-			   deltaHiddenSum = deltaOutputSum / self.weights[len(self.weights)] * ActivationFn().sigmoidprime(self.layers[len(self.layers)-2].getSums())
-			   self.weights[len(self.weights)] = self.weights[len(self.weights)] + deltaWeights
-
-			   deltaWeigths1 = np.tile(deltaHiddenSum,(np.size([1,1]),1)).transpose() / np.array([[1,1]])
-			   self.weights[len(self.weights)-1] = self.weights[len(self.weights)-1] + deltaWeigths1
+			   
+			   i = len(self.layers)-1
+			   
+			   deltaSum = ActivationFn().sigmoidprime(self.layers[i].getSums()[0]) * self.error
+			   deltaWeights = deltaSum / self.layers[i-1].getValues()
+			   
+			   deltaSum = deltaSum / self.weights[i] * ActivationFn().sigmoidprime(self.layers[(i-1)].getSums())
+			   
+			   self.weights[i] = self.weights[i] + deltaWeights
+			   deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(i-2)].getValues()),1)).transpose() / np.array(self.layers[(i-2)].getValues())
+			   self.weights[i-1] = self.weights[i-1] + deltaWeigths
+			   
+			   print(self.weights)
 class ActivationFn():
 	    @staticmethod
 	    def sigmoid(x):
