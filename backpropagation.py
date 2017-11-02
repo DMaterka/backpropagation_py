@@ -5,6 +5,7 @@ import config as cfg
 import numpy as np
 import sqlite3
 import random
+import copy as cp
 
 debug = 0
 
@@ -52,14 +53,14 @@ class Layer:
 			   return self.neurons
 	    
 	    def getValues(self):
-			   tmparr = []
+			   tmparr = np.array([])
 			   for i in (range(len(self.neurons))):
-					  tmparr.append(self.neurons[i].getValue())
-			   return tmparr	
+					  tmparr = np.append(tmparr,self.neurons[i].getValue())
+			   return tmparr
 	    def getSums(self):
-			   tmparr = []
+			   tmparr = np.array([])
 			   for i in (range(len(self.neurons))):
-					  tmparr.append(self.neurons[i].getSum())
+					  tmparr = np.append(tmparr,self.neurons[i].getSum())
 			   return tmparr
 class Net:
 	    # contains layers
@@ -111,20 +112,19 @@ class Net:
 			   self.error = 0 - self.layers[i+1].getNeurons()[0].getValue()
 			   
 	    def backPropagate(self):
-			   
+			   oldweights = cp.copy(self.weights)
 			   i = len(self.layers)-1
-			   
 			   deltaSum = ActivationFn().sigmoidprime(self.layers[i].getSums()[0]) * self.error
 			   deltaWeights = deltaSum / self.layers[i-1].getValues()
+			   self.weights[i] = self.weights[i] + deltaWeights
 			   
-			   for j in range(2,1,-1):
-					  deltaSum = deltaSum / self.weights[j] * ActivationFn().sigmoidprime(self.layers[(j-1)].getSums())
-			   
-					  self.weights[j] = self.weights[j] + deltaWeights
-					  deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(j-2)].getValues()),1)).transpose() / np.array(self.layers[(j-2)].getValues())
-					  self.weights[j-1] = self.weights[j-1] + deltaWeigths
-			   
-					  print(self.weights)
+			   for j in range(1,0,-1):
+					  deltaSum = deltaSum / oldweights[j+1] * ActivationFn().sigmoidprime(self.layers[(j)].getSums())
+					  #allow legally divise the arrays with different shapes, use instead for over all inputs
+					  deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(j-1)].getValues()),1)).T / self.layers[(j-1)].getValues().reshape(1,2)
+					  self.weights[j] = self.weights[j] + deltaWeigths
+					  oldweights = cp.copy(self.weights)
+			   print(self.weights)
 class ActivationFn():
 	    @staticmethod
 	    def sigmoid(x):
@@ -135,6 +135,11 @@ class ActivationFn():
 	    def sigmoidprime(x):
 			   return (__class__.sigmoid(x))*(1 - __class__.sigmoid(x))
 			   
+#test = np.array([[-0.03325106, -0.13300425],[-0.06650212, -0.0295565 ],[-0.0532017, -0.0886695 ]])
+#print(test)
+#print(test.T)
+#print(test / np.array([1, 1]) )
+
 net = Net(cfg.Structure,"name")
 
 #net.forwardPropagate();
