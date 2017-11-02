@@ -113,12 +113,12 @@ class Net:
 			   
 	    def backPropagate(self):
 			   oldweights = cp.copy(self.weights)
-			   i = len(self.layers)-1
+			   i = len(self.weights)
 			   deltaSum = ActivationFn().sigmoidprime(self.layers[i].getSums()[0]) * self.error
 			   deltaWeights = deltaSum / self.layers[i-1].getValues()
 			   self.weights[i] = self.weights[i] + deltaWeights
 			   
-			   for j in range(1,0,-1):
+			   for j in range(len(self.weights)-1,0,-1):
 					  deltaSum = deltaSum / oldweights[j+1] * ActivationFn().sigmoidprime(self.layers[(j)].getSums())
 					  #allow legally divise the arrays with different shapes, use instead for over all inputs
 					  deltaWeigths = np.tile(deltaSum,(np.size(self.layers[(j-1)].getValues()),1)).T / self.layers[(j-1)].getValues().reshape(1,2)
