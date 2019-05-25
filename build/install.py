@@ -8,6 +8,6 @@ def createSchema(conn):
 	    c.execute('''INSERT INTO test VALUES(1,'test')''')
 	    conn.commit()	
 
-conn = sqlite3.connect('../data/backprop.db')
+conn = sqlite3.connect('data/backprop.db')
 createSchema(conn)
 conn.close	 

@@ -6,12 +6,12 @@ setup (
 	  packages=find_packages(),
 
 	  # Declare your packages' dependencies here, for eg:
-	  install_requires=['foo>=3'],
+	  install_requires=['numpy>=3'],
 
 	  # Fill in these to make your Egg ready for upload to
 	  # PyPI
-	  author='daniel',
-	  author_email='',
+	  author='batyr',
+	  author_email='daniel.materka@gmail.com',
 
 	  #summary = 'Just another Python package for the cheese shop',
 	  url='',
