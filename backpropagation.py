@@ -81,7 +81,7 @@ class Layer:
         self.weights = np.array(weights)
         size = np.shape(self.weights)
         if(size[1] != len(self.getNeurons())):
-            Exception()
+            Exception('Malformed weights')
 
     def getWeights(self):
         return self.weights
@@ -99,13 +99,15 @@ class Net:
     error = 0
     outputValue = 0
 
-    def __init__(self, hiddenNeurons, name):
+    def __init__(self, inputs, results, name):
         # self.setInputs(inputs)
         # self.results = results
-        # TODO losowe wagi
-        self.weights[1] = np.array([[0.8, 0.2], [0.4, 0.9], [0.5, 0.3]])
-        self.weights[2] = np.array([[0.3, 0.5, 0.9]])
         self.setName(name)
+        self.setInputs(inputs)
+        self.setResults(results)
+        # TODO losowe wagi
+        # self.weights[1] = np.array([[0.8, 0.2], [0.4, 0.9], [0.5, 0.3]])
+        # self.weights[2] = np.array([[0.3, 0.5, 0.9]])
         
     def setLayer(self, index, layer):
         self.layers[index] = layer
@@ -116,6 +118,31 @@ class Net:
     
     def getLayers(self):
         return self.layers
+    
+    # @TODO WIP
+    def setWeights(self, weights={}):
+        if(weights == {}):
+            len(self.getLayers())
+            test = {}
+            for index, value in self.getLayers().items():
+                if(index != len(self.getLayers()) - 1):
+                    # @TODO too less Neurons
+                    neuronsCount = len(value.getNeurons())
+                    tt = self.getLayer(index + 1)
+                    neurons2Count = len(self.getLayer(index+1).getNeurons())
+                    test[index] = np.random.rand(neuronsCount, neurons2Count)
+                    t =1
+            return True
+    
+    def getWeights(self, layer=0) -> np.array:
+        if(layer):
+            return self.getLayer(layer).getWeights()
+        else:
+            layers = self.getLayers()
+            weights = {}
+            for layer in range(1, len(layers)):
+                weights[layer] = layers[layer-1].getWeights()
+            return weights
         
     def setInputs(self, inputs):
         self.inputs = inputs
@@ -165,9 +192,7 @@ class Net:
         outputLayer = self.getLayer(i+1)
         if debug:
             print("I set the " + str(i + 1) + " layer: " + str(outputLayer) + " of network " + str(self))
-        
-       
-        value = np.dot(self.weights[len(self.weights)], self.getLayer(i).getValues())
+        value = np.dot(self.getLayer(i).getWeights(), self.getLayer(i).getValues())
         outputLayer.setNeurons(value)
     
         # @TODO 0 replace with value of output neuron
@@ -177,28 +202,21 @@ class Net:
         print(self.outputValue)
 
     def backPropagate(self):
-        oldweights = cp.copy(self.weights)
-        i = len(self.weights)
-        deltaSum = ActivationFn().sigmoidprime(self.layers[i].getSums()[0]) * self.error
-        deltaWeights = deltaSum / self.layers[i - 1].getValues()
-        # @TODO set weights trought setter
-        self.weights[i] = self.weights[i] + deltaWeights
-    
-        for j in range(len(self.weights) - 1, 0, -1):
-            deltaSum = deltaSum / oldweights[j + 1] * ActivationFn().sigmoidprime(self.layers[(j)].getSums())
+        oldweights = cp.copy(self.getWeights())
+        i = len(self.getWeights())
+        deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getSums()[0]) * self.error
+        deltaWeights = deltaSum / self.getLayer(i - 1).getValues()
+        self.getLayer(i - 1).setWeights(self.getLayer(i - 1).getWeights() + deltaWeights)
+        for j in range(len(self.getWeights()) - 1, 0, -1):
+            deltaSum = deltaSum / oldweights[j + 1] * ActivationFn().sigmoidprime(self.getLayer(j).getSums())
             # allow legally divise the arrays with different shapes, use instead for over all inputs
-            a = np.tile(deltaSum, (np.size(self.layers[(j - 1)].getValues()), 1)).T
-            b = self.layers[(j - 1)].getValues().reshape(1, 2)
+            a = np.tile(deltaSum, (np.size(self.getLayer(j - 1).getValues()), 1)).T
+            b = self.getLayer(j - 1).getValues().reshape(1, 2)
             # issue with 0.0 and 1.0 the weights doesn't move or the division by 0 occurs
             # that means the values are guessed well initially, so the network is confused
             # maybe sums should be distributed randomly?
             deltaWeigths = a / b
-            self.weights[j] = self.weights[j] + deltaWeigths
-            oldweights = cp.copy(self.weights)
-        # print(self.weights)
-
-# def getOutputValue(self):
-# 	   print('TODO')
+            self.getLayer(j - 1).setWeights(self.getLayer(j-1).getWeights() + deltaWeigths)
 
 class ActivationFn():
     @staticmethod
@@ -226,22 +244,23 @@ hiddenNeuronsNumber = 3
 inputs = np.array([[0.99, 0.99]])
 results = np.array([[0.01]])
 
-# prepare hidden layer definition
-hiddenLayer = Layer()
-hiddenLayer.setNeurons([0, 0])
-neurons = hiddenLayer.getNeurons()
-
 #train the network
-net = Net(hiddenLayer, "name")
-net.setInputs(inputs[0])
+net = Net(inputs, results, "name")
+#set input layer
 inputLayer = Layer()
-inputLayer.setNeurons(inputs[0])
+inputLayer.setNeurons(inputs)
 net.setLayer(0, inputLayer)
 net.getLayer(0).setWeights([[0.8, 0.2], [0.4, 0.9], [0.5, 0.3]])
+# net.getLayer(0).setWeights()
+# set hidden layer
+hiddenLayer = Layer()
+hiddenLayer.setNeurons([0, 0, 0])
+neurons = hiddenLayer.getNeurons()
 net.setLayer(1, hiddenLayer)
 net.getLayer(1).setWeights([[0.3, 0.5, 0.9]])
+#set output layer
 net.setLayer(2, Layer())
-# hiddenLayer.setWeights()
+net.setWeights()
 for i in range(1, 10):
     for pair in range(0, len(inputs)):
         for i in range(1, numit):
