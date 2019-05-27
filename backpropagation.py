@@ -121,19 +121,21 @@ class Net:
     
     # @TODO WIP
     def setWeights(self, weights={}):
+        if (weights):
+            self.weights = weights
+            return self
         if(weights == {}):
             len(self.getLayers())
-            test = {}
             for index, value in self.getLayers().items():
-                if(index != len(self.getLayers()) - 1):
-                    # @TODO too less Neurons
+                if(index < len(self.getLayers())-1):
                     neuronsCount = len(value.getNeurons())
-                    tt = self.getLayer(index + 1)
                     neurons2Count = len(self.getLayer(index+1).getNeurons())
-                    test[index] = np.random.rand(neuronsCount, neurons2Count)
-                    t =1
-            return True
-    
+                    if(neurons2Count == 0):
+                        neurons2Count = 1
+                    if (neuronsCount == 0):
+                        neuronsCount = 1
+                    self.layers[index].setWeights(np.random.rand(neurons2Count, neuronsCount))
+                    
     def getWeights(self, layer=0) -> np.array:
         if(layer):
             return self.getLayer(layer).getWeights()
@@ -180,7 +182,7 @@ class Net:
         return self.name
 
     def forwardPropagate(self):
-        for i in range(1, len(self.dimensionsdef) - 1):
+        for i in range(1, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             previousLayer = self.getLayer(i-1)
             if debug:
@@ -210,6 +212,7 @@ class Net:
         for j in range(len(self.getWeights()) - 1, 0, -1):
             deltaSum = deltaSum / oldweights[j + 1] * ActivationFn().sigmoidprime(self.getLayer(j).getSums())
             # allow legally divise the arrays with different shapes, use instead for over all inputs
+            #@TODO set parameters of reshape dynamically
             a = np.tile(deltaSum, (np.size(self.getLayer(j - 1).getValues()), 1)).T
             b = self.getLayer(j - 1).getValues().reshape(1, 2)
             # issue with 0.0 and 1.0 the weights doesn't move or the division by 0 occurs
@@ -238,39 +241,52 @@ class ActivationFn():
 
 numit = 1000
 hiddenNeuronsNumber = 3
-# inputs = np.array([[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]])
-# results = np.array([[0.99], [0.01], [0.01], [0.99]])
+inputs = np.array([[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]])
+results = np.array([[0.99], [0.01], [0.01], [0.99]])
 
-inputs = np.array([[0.99, 0.99]])
-results = np.array([[0.01]])
+# inputs = np.array([[0.99, 0.99]])
+# results = np.array([[0.01]])
 
 #train the network
 net = Net(inputs, results, "name")
 #set input layer
 inputLayer = Layer()
-inputLayer.setNeurons(inputs)
+inputLayer.setNeurons(inputs[0])
 net.setLayer(0, inputLayer)
-net.getLayer(0).setWeights([[0.8, 0.2], [0.4, 0.9], [0.5, 0.3]])
+# net.getLayer(0).setWeights([[0.8, 0.2], [0.4, 0.9], [0.5, 0.3]])
 # net.getLayer(0).setWeights()
 # set hidden layer
 hiddenLayer = Layer()
-hiddenLayer.setNeurons([0, 0, 0])
-neurons = hiddenLayer.getNeurons()
+hiddenLayer.setNeurons([0, 0, 0, 0, 0 ])
 net.setLayer(1, hiddenLayer)
-net.getLayer(1).setWeights([[0.3, 0.5, 0.9]])
+
+# set second hidden layer
+hiddenLayer1 = Layer()
+hiddenLayer1.setNeurons([0, 0, 0, 0, 0 ])
+net.setLayer(2, hiddenLayer1)
+# net.getLayer(1).setWeights([[0.3, 0.5, 0.9]])
 #set output layer
-net.setLayer(2, Layer())
+net.setLayer(3, Layer())
 net.setWeights()
 for i in range(1, 10):
     for pair in range(0, len(inputs)):
         for i in range(1, numit):
             net.setInputs(inputs[pair])
             net.setResults(results[pair])
-            net.setDimensionsDef()
             net.forwardPropagate()
             net.backPropagate()
             
+print('results')
 net.setInputs(inputs[0])
+net.forwardPropagate()
+
+net.setInputs(inputs[1])
+net.forwardPropagate()
+
+net.setInputs(inputs[2])
+net.forwardPropagate()
+
+net.setInputs(inputs[3])
 net.forwardPropagate()
 # net.setInputs(inputs[1])
 # net.forwardPropagate()
