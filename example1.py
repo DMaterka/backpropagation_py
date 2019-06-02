@@ -10,11 +10,11 @@ inputs = np.array([[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]])
 results = np.array([[0.99], [0.01], [0.01], [0.99]])
 
 # train the network
-net = Net(inputs[2], results[2], "name")
+net = Net(np.array([[0.99, 0.99]]), np.array([[0.01]]), "name")
 
 # set input layer
 inputLayer = Layer()
-inputLayer.setNeurons(inputs[2], 1)
+inputLayer.setNeurons(np.array([[0.99, 0.99]]), 1)
 net.setLayer(0, inputLayer)
 
 # set hidden layer
@@ -29,14 +29,14 @@ outputLayer.setNeurons([0])
 net.setLayer(2, outputLayer)
 net.getLayer(2).setWeights([[.3, .5, .9]])
 
-t = len(inputs)
+# net.setWeights()
 for i in range(1, numit):
-    net.getLayer(0).setNeurons(inputs[2], 1)
-    net.setResults(results[2])
+    net.getLayer(0).setNeurons(np.array([[0.99, 0.99]]), 1)
+    net.setResults(np.array([[0.01]]))
     net.forwardPropagate()
     net.backPropagate()
 
-print('results')
+print('expected results: [[0.77381515]] and [[0.69451532]]')
 net.setInputs(inputs[2])
 net.forwardPropagate()
 

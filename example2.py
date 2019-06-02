@@ -8,14 +8,14 @@ import numpy as np
 numit = 200
 
 test_inputs = np.array([[.05, .1]])
-test_outputs = np.array([[.1, .99]])
+test_outputs = np.array([[.1], [.99]])
 
 # train the network
 net = Net(test_inputs, test_outputs, "name")
 
 # set input layer
 inputLayer = Layer()
-inputLayer.setNeurons(test_inputs[0], 1)
+inputLayer.setNeurons(test_inputs, 1)
 net.setLayer(0, inputLayer)
 
 # set hidden layer
@@ -32,7 +32,7 @@ net.getLayer(2).setWeights([[.4, .55], [.5, .55]])
 
 for i in range(1, numit):
     # net.setInputs(inputs[pair])
-    net.getLayer(0).setNeurons(test_inputs[0], 1)
+    net.getLayer(0).setNeurons(test_inputs, 1)
     net.setResults(test_outputs)
     net.forwardPropagate()
     net.backPropagate()

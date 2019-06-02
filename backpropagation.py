@@ -57,15 +57,16 @@ class Layer:
         pass
     
     def setNeurons(self, sums, immutable=0):
-        self.neurons = [Neuron() for i in range(len(sums))]
-        for i in range(len(self.neurons)):
+        t = np.resize(sums, (np.size(sums), 1))
+        self.neurons = [Neuron() for i in range(len(t))]
+        for i in range(len(t)):
             if debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
-            self.neurons[i].setSum(sums[i])
+            self.neurons[i].setSum(t[i])
             if immutable != 1:
-                self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
+                self.neurons[i].setValue(ActivationFn().sigmoid(t[i]))
             else:
-                self.neurons[i].setValue(sums[i])
+                self.neurons[i].setValue(t[i])
     
     def getNeurons(self):
         return self.neurons
@@ -130,14 +131,14 @@ class Net:
         if(weights == {}):
             len(self.getLayers())
             for index, value in self.getLayers().items():
-                if index < len(self.getLayers()) - 1:
+                if index > 0:
                     neuronsCount = len(value.getNeurons())
-                    neurons2Count = len(self.getLayer(index+1).getNeurons())
+                    neurons2Count = len(self.getLayer(index-1).getNeurons())
                     if neurons2Count == 0:
                         neurons2Count = 1
                     if neuronsCount == 0:
                         neuronsCount = 1
-                    self.layers[index].setWeights(np.random.rand(neurons2Count, neuronsCount))
+                    self.layers[index].setWeights(np.random.rand(neuronsCount, neurons2Count))
                     
     def getWeights(self, layer=0) -> np.array:
         if(layer):
@@ -176,6 +177,12 @@ class Net:
         return self.name
 
     def forwardPropagate(self):
+        # validate network
+        if len(self.results) != len(self.getLayer(len(self.getLayers())-1).getNeurons()):
+            print(np.shape(self.results))
+            print(np.shape(self.getLayer(len(self.getLayers())-1).getNeurons()))
+            raise Exception('Results size must match last layer network!')
+        
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
@@ -186,21 +193,25 @@ class Net:
                 sum = np.dot(nextLayer.getWeights()[j], currentLayer.getValues())
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
-        self.error = self.results - self.getLayer(i+1).getNeurons()[0].getValue()
+        self.error = self.results - self.getLayer(i+1).getValues()
+        if np.shape(self.error) != np.shape(self.results):
+            raise Exception('Error must have the shape of results')
         print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
         oldweights = cp.copy(self.getWeights())
         i = len(self.getWeights())
         for ds in range(0, len(self.getLayer(i).getNeurons())):
-            deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error
+            deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error[ds]
+            t1 = self.getLayer(i - 1).getValues()
             deltaWeights = deltaSum / self.getLayer(i - 1).getValues()
-            self.getLayer(i).setWeights(self.getLayer(i).getWeights() + deltaWeights.T)
+            t2 = self.layers[i].weights
+            self.layers[i].weights[ds] = self.layers[i].weights[ds] + deltaWeights.T
         for j in range(len(self.getWeights()) - 1, 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())-1):
                 deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
-                deltaWeigths1 = deltaSum / self.getLayer(j - 1).getValues()[ds]
-                self.layers[j].weights[ds] = self.layers[j].weights[ds] + deltaWeigths1
+                deltaWeigths1 = deltaSum / self.getLayer(j - 1).getValues()
+                self.layers[j].weights[ds] = self.layers[j].weights[ds] + deltaWeigths1.T
 
 
 class ActivationFn:
