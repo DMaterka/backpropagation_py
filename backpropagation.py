@@ -1,9 +1,7 @@
 # To change this license header, choose License Headers in Project Properties.
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
-import config as cfg
 import numpy as np
-import sqlite3
 import copy as cp
 
 debug = 0
@@ -15,10 +13,10 @@ class Neuron:
     
     value = 0
     sum = 0
-    bias = 0
+    is_bias = 0
     
-    def __init__(self):
-        pass
+    def __init__(self, is_bias=False):
+        self.is_bias = is_bias
     
     def setValue(self, value):
         self.value = value
@@ -26,6 +24,8 @@ class Neuron:
             print("   I assign a value of " + str(value) + " to the neuron " + str(self))
     
     def getValue(self):
+        if self.is_bias:
+            return 1
         return self.value
     
     def setSum(self, sum):
@@ -34,15 +34,9 @@ class Neuron:
             print("   I assign a sum of " + str(sum) + " to the neuron " + str(self))
     
     def getSum(self):
+        if self.is_bias:
+            return 1
         return self.sum
-    
-    def setBias(self, bias):
-        self.bias = bias
-        return self
-    
-    def getBias(self):
-        return self.bias
-
 
 class Layer:
     #
@@ -74,6 +68,13 @@ class Layer:
     def getNeuron(self, index):
         return self.neurons[index]
     
+    def setBias(self):
+        t = len(self.neurons)
+        self.neurons.append(Neuron(True))
+        self.getNeuron(len(self.neurons)-1).setValue(1)
+        self.getNeuron(len(self.neurons)-1).setSum(1)
+        return self
+        
     def getValues(self):
         tmparr = np.zeros(np.shape(self.neurons))
         for i in range(0, len(self.neurons)):
@@ -89,9 +90,6 @@ class Layer:
     def setWeights(self, weights):
         # sh = shape(weights)
         self.weights = np.array(weights)
-        # size = np.shape(self.weights)
-        # if(size[1] != len(self.getNeurons())):
-        #     Exception('Malformed weights')
 
     def getWeights(self):
         return self.weights
@@ -108,10 +106,11 @@ class Net:
     deltaOutputSum = 0
     error = 0
 
-    def __init__(self, inputs, results, name):
+    def __init__(self, name, inputs, results, learning_rate=1):
         self.setName(name)
         self.setInputs(inputs)
         self.setResults(results)
+        self.learning_rate = learning_rate
         
     def setLayer(self, index, layer):
         self.layers[index] = layer
@@ -178,10 +177,12 @@ class Net:
 
     def forwardPropagate(self):
         # validate network
-        if len(self.results) != len(self.getLayer(len(self.getLayers())-1).getNeurons()):
-            print(np.shape(self.results))
-            print(np.shape(self.getLayer(len(self.getLayers())-1).getNeurons()))
-            raise Exception('Results size must match last layer network!')
+        if np.size(self.results) != np.size(self.getLayer(len(self.getLayers())-1).getValues()):
+            # print(np.shape(self.results))
+            # print(np.shape(self.getLayer(len(self.getLayers())-1).getNeurons()))
+            #check if layer has bias, then recalculate
+            # raise Exception('Results size must match last layer network!')
+            pass
         
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
@@ -203,15 +204,13 @@ class Net:
         i = len(self.getWeights())
         for ds in range(0, len(self.getLayer(i).getNeurons())):
             deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error[ds]
-            t1 = self.getLayer(i - 1).getValues()
             deltaWeights = deltaSum / self.getLayer(i - 1).getValues()
-            t2 = self.layers[i].weights
-            self.layers[i].weights[ds] = self.layers[i].weights[ds] + deltaWeights.T
+            self.layers[i].weights[ds] = self.layers[i].weights[ds] + self.learning_rate * deltaWeights.T
         for j in range(len(self.getWeights()) - 1, 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())-1):
                 deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
                 deltaWeigths1 = deltaSum / self.getLayer(j - 1).getValues()
-                self.layers[j].weights[ds] = self.layers[j].weights[ds] + deltaWeigths1.T
+                self.layers[j].weights[ds] = self.layers[j].weights[ds] + self.learning_rate * deltaWeigths1.T
 
 
 class ActivationFn:
@@ -223,8 +222,3 @@ class ActivationFn:
     @staticmethod
     def sigmoidprime(x):
         return (__class__.sigmoid(x)) * (1 - __class__.sigmoid(x))
-
-#store the network
-conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)
-
-conn.close
