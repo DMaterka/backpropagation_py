@@ -14,14 +14,19 @@ class Neuron:
     value = 0
     sum = 0
     is_bias = 0
+    weights = None
     
     def __init__(self, is_bias=False):
         self.is_bias = is_bias
+        return None
     
     def setValue(self, value):
+        if self.is_bias:
+            raise Exception("Bias value or sum cannot be set")
         self.value = value
         if debug:
             print("   I assign a value of " + str(value) + " to the neuron " + str(self))
+        return self
     
     def getValue(self):
         if self.is_bias:
@@ -29,6 +34,8 @@ class Neuron:
         return self.value
     
     def setSum(self, sum):
+        if self.is_bias:
+            raise Exception("Bias value or sum cannot be set")
         self.sum = sum
         if debug:
             print("   I assign a sum of " + str(sum) + " to the neuron " + str(self))
@@ -37,6 +44,13 @@ class Neuron:
         if self.is_bias:
             return 1
         return self.sum
+    
+    def setWeights(self, weight):
+        self.weights = weight
+        return self
+    
+    def getWeights(self):
+        return self.weights
 
 class Layer:
     #
@@ -46,9 +60,7 @@ class Layer:
     neurons = {}
     layerSum = 0
     weights = {}
-    
-    def __init__(self):
-        pass
+    bias = None
     
     def setNeurons(self, sums, immutable=0):
         t = np.resize(sums, (np.size(sums), 1))
@@ -68,12 +80,18 @@ class Layer:
     def getNeuron(self, index):
         return self.neurons[index]
     
-    def setBias(self):
-        t = len(self.neurons)
-        self.neurons.append(Neuron(True))
-        self.getNeuron(len(self.neurons)-1).setValue(1)
-        self.getNeuron(len(self.neurons)-1).setSum(1)
+    def setBias(self, weights):
+        bias = Neuron(True)
+        bias.setWeights(weights)
+        self.bias = bias
         return self
+    
+    def getBias(self):
+        return self.bias
+    
+    def getBiasWeights(self):
+        if self.bias != None:
+            return np.array(self.bias.getWeights()).T
         
     def getValues(self):
         tmparr = np.zeros(np.shape(self.neurons))
@@ -122,7 +140,6 @@ class Net:
     def getLayers(self):
         return self.layers
     
-    # @TODO WIP
     def setWeights(self, weights={}):
         if (weights):
             self.weights = weights
@@ -183,7 +200,6 @@ class Net:
             #check if layer has bias, then recalculate
             # raise Exception('Results size must match last layer network!')
             pass
-        
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
@@ -192,25 +208,35 @@ class Net:
             # produce neurons' sums and values
             for j in range(0, len(nextLayer.getNeurons())):
                 sum = np.dot(nextLayer.getWeights()[j], currentLayer.getValues())
+                if currentLayer.getBias() != None:
+                    biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
+                    sum += biasWeightsSum
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
         self.error = self.results - self.getLayer(i+1).getValues()
         if np.shape(self.error) != np.shape(self.results):
-            raise Exception('Error must have the shape of results')
+            raise Exception('Error must have the same shape as the results')
         print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
         oldweights = cp.copy(self.getWeights())
         i = len(self.getWeights())
         for ds in range(0, len(self.getLayer(i).getNeurons())):
-            deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error[ds]
-            deltaWeights = deltaSum / self.getLayer(i - 1).getValues()
+            deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error
+            deltaWeights = deltaSum * self.getLayer(i - 1).getValues()
+            if self.getLayer(i-1).getBias():
+                bias = self.getLayer(i-1).getBias()
+                bias.weights = bias.weights + self.learning_rate * deltaWeights.T
             self.layers[i].weights[ds] = self.layers[i].weights[ds] + self.learning_rate * deltaWeights.T
         for j in range(len(self.getWeights()) - 1, 0, -1):
-            for ds in range(0, len(self.getLayer(j).getNeurons())-1):
+            for ds in range(0, len(self.getLayer(j).getNeurons())):
                 deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
-                deltaWeigths1 = deltaSum / self.getLayer(j - 1).getValues()
-                self.layers[j].weights[ds] = self.layers[j].weights[ds] + self.learning_rate * deltaWeigths1.T
+                deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
+                self.layers[j].weights[ds] = self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T
+                #update bias weights
+                if self.getLayer(j-1).getBias():
+                    bias = self.getLayer(j-1).getBias()
+                    bias.weights = bias.weights + self.learning_rate * deltaWeights.T
 
 
 class ActivationFn:

@@ -1,35 +1,34 @@
 from backpropagation import Net
 from backpropagation import Layer
 import numpy as np
-#@TODO break second n-th layer bias connection to previous layer
 # dane testowe oraz wynik jako jeden wiersz tablicy
 # reprezentowane przez XOR
-
-numit = 200
+#@TODO small differences of -4 order
+numit = 2
 
 test_inputs = np.array([[.05, .1]])
-test_outputs = np.array([[.1], [.99]])
+test_outputs = np.array([[.01], [.99]])
 
 # train the network
-net = Net("name", test_inputs, test_outputs)
+net = Net("name", test_inputs, test_outputs, 0.5)
 
 # set input layer
 inputLayer = Layer()
 inputLayer.setNeurons(test_inputs, 1)
-inputLayer.setBias()
+inputLayer.setBias([.35, .35])
 net.setLayer(0, inputLayer)
 
 # set hidden layer
 hiddenLayer = Layer()
 hiddenLayer.setNeurons([0, 0])
-hiddenLayer.setBias()
-hiddenLayer.setWeights([[.15, .25, .35], [.2, .3, .35]])
+hiddenLayer.setBias([.6, .6])
+hiddenLayer.setWeights([[.15, .25], [.20, .3]])
 net.setLayer(1, hiddenLayer)
 
 # set output layer
 outputLayer = Layer()
 outputLayer.setNeurons([0, 0])
-outputLayer.setWeights([[.4, .5, .6], [.45, .55, .6]])
+outputLayer.setWeights([[.4, .5], [.45, .55]])
 net.setLayer(2, outputLayer)
 
 for i in range(1, numit):
