@@ -46,7 +46,7 @@ class Neuron:
         return self.sum
     
     def setWeights(self, weight):
-        self.weights = weight
+        self.weights = np.array(weight)
         return self
     
     def getWeights(self):
@@ -106,8 +106,10 @@ class Layer:
         return tmparr
     
     def setWeights(self, weights):
-        # sh = shape(weights)
         self.weights = np.array(weights)
+        for i in range(0, len(weights)):
+            self.getNeuron(i).setWeights(weights[i])
+        return self
 
     def getWeights(self):
         return self.weights
@@ -141,9 +143,10 @@ class Net:
         return self.layers
     
     def setWeights(self, weights={}):
-        if (weights):
-            self.weights = weights
-            return self
+        if weights:
+            self.weights = np.array(weights, dtype=object)
+            for i in range(0, self.getNeurons()):
+                self.getNeurons(i).setWeights(self.weights[i])
         if(weights == {}):
             len(self.getLayers())
             for index, value in self.getLayers().items():
@@ -154,8 +157,13 @@ class Net:
                         neurons2Count = 1
                     if neuronsCount == 0:
                         neuronsCount = 1
-                    self.layers[index].setWeights(np.random.rand(neuronsCount, neurons2Count))
-                    
+                    if weights:
+                        for i in range(0, neuronsCount):
+                            self.layers[index].getNeuron(i).setWeights(np.random.rand(1, neurons2Count))
+                    else:
+                        self.layers[index].setWeights(np.random.rand(neuronsCount, neurons2Count))
+        return self
+    
     def getWeights(self, layer=0) -> np.array:
         if(layer):
             return self.getLayer(layer).getWeights()
@@ -165,7 +173,7 @@ class Net:
             for layer in range(1, len(layers)):
                 weights[layer] = layers[layer].getWeights()
             return weights
-        
+
     def setInputs(self, inputs):
         self.inputs = inputs
         return self
@@ -220,24 +228,19 @@ class Net:
 
     def backPropagate(self):
         oldweights = cp.copy(self.getWeights())
-        i = len(self.getWeights())
-        for ds in range(0, len(self.getLayer(i).getNeurons())):
-            deltaSum = ActivationFn().sigmoidprime(self.getLayer(i).getNeuron(ds).getSum()) * self.error
-            deltaWeights = deltaSum * self.getLayer(i - 1).getValues()
-            if self.getLayer(i-1).getBias():
-                bias = self.getLayer(i-1).getBias()
-                bias.weights = bias.weights + self.learning_rate * deltaWeights.T
-            self.layers[i].weights[ds] = self.layers[i].weights[ds] + self.learning_rate * deltaWeights.T
-        for j in range(len(self.getWeights()) - 1, 0, -1):
+        for j in range(len(self.getWeights()), 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())):
-                deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
+                if j == len(self.getWeights()):
+                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * self.error[ds]
+                else:
+                    deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
                 deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
                 self.layers[j].weights[ds] = self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T
+                self.getLayer(j).getNeuron(ds).setWeights(self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T)
                 #update bias weights
                 if self.getLayer(j-1).getBias():
                     bias = self.getLayer(j-1).getBias()
-                    bias.weights = bias.weights + self.learning_rate * deltaWeights.T
-
+                    bias.weights[ds] = bias.weights[ds] + (self.learning_rate * deltaWeights[ds])
 
 class ActivationFn:
     @staticmethod

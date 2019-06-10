@@ -11,34 +11,35 @@ net = Net("name", inputs, results, 0.3)
 # set input layer
 inputLayer = Layer()
 inputLayer.setNeurons(inputs, 1)
+inputLayer.setBias([.4, .6])
 net.setLayer(0, inputLayer)
 # set hidden layer
 hiddenLayer = Layer()
 hiddenLayer.setNeurons([0, 0])
-hiddenLayer.setBias()
-
+hiddenLayer.setBias([.4, .6, .5])
+hiddenLayer.setWeights([[.15, .2, .1, .6, .2, .9, .5, .3], [.15, .2, .1, .6, .2, .9, .5, .3]])
 net.setLayer(1, hiddenLayer)
-# net.getLayer(1).setWeights([[.15, .2], [.25, 0.3]])
 
 # set second hidden layer
 hiddenLayer1 = Layer()
 hiddenLayer1.setNeurons([0, 0, 0])
-hiddenLayer1.setBias()
+hiddenLayer1.setBias([.2, .7, .9, .3, .8])
+hiddenLayer1.setWeights([[.4, .55], [.5, .55], [.5, .55]])
 net.setLayer(2, hiddenLayer1)
-# net.getLayer(2).setWeights([[.4, .55], [.5, .55]])
 
 hiddenLayer2 = Layer()
 hiddenLayer2.setNeurons([0, 0, 0, 0, 0])
-hiddenLayer2.setBias()
+hiddenLayer2.setBias([.5, .2, .6, .8])
+hiddenLayer2.setWeights([[0.6, 0.8, 0.3], [0.6, 0.8, 0.3], [0.6, 0.8, 0.3], [0.6, 0.8, 0.3], [0.6, 0.8, 0.3]])
 net.setLayer(3, hiddenLayer2)
-# net.getLayer(3).setWeights([[0.6, 0.8, 0.3, 0.7, 0.2]])
 
 # set output layer
 outputLayer = Layer()
 outputLayer.setNeurons([0, 0, 0, 0])
-net.setLayer(3, outputLayer)
-# net.getLayer(3).setWeights([[.3, .5, .9, .7]])
-net.setWeights()
+outputLayer.setWeights([[.3, .5, .9, .7, .5], [.3, .5, .9, .7, .5], [.3, .5, .9, .7, .5], [.3, .5, .9, .7, .5]])
+net.setLayer(4, outputLayer)
+
+# net.setWeights()
 net.setResults(results)
 for i in range(1, numit):
     net.forwardPropagate()

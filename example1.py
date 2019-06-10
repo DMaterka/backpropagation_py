@@ -5,7 +5,7 @@ import numpy as np
 # dane testowe oraz wynik jako jeden wiersz tablicy
 # reprezentowane przez XOR
 
-numit = 2
+numit = 3
 inputs = np.array([[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]])
 results = np.array([[0.99], [0.01], [0.01], [0.99]])
 

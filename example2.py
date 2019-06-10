@@ -4,7 +4,7 @@ import numpy as np
 # dane testowe oraz wynik jako jeden wiersz tablicy
 # reprezentowane przez XOR
 #@TODO small differences of -4 order
-numit = 2
+numit = 3
 
 test_inputs = np.array([[.05, .1]])
 test_outputs = np.array([[.01], [.99]])
@@ -22,13 +22,13 @@ net.setLayer(0, inputLayer)
 hiddenLayer = Layer()
 hiddenLayer.setNeurons([0, 0])
 hiddenLayer.setBias([.6, .6])
-hiddenLayer.setWeights([[.15, .25], [.20, .3]])
+hiddenLayer.setWeights([[.15, .20], [.25, .3]])
 net.setLayer(1, hiddenLayer)
 
 # set output layer
 outputLayer = Layer()
 outputLayer.setNeurons([0, 0])
-outputLayer.setWeights([[.4, .5], [.45, .55]])
+outputLayer.setWeights([[.4, .45], [.50, .55]])
 net.setLayer(2, outputLayer)
 
 for i in range(1, numit):
