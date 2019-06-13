@@ -6,6 +6,7 @@ import copy as cp
 
 debug = 0
 
+
 class Neuron:
     # basic type
     # set value
@@ -15,6 +16,7 @@ class Neuron:
     sum = 0
     is_bias = 0
     weights = None
+    deltaSum = None
     
     def __init__(self, is_bias=False):
         self.is_bias = is_bias
@@ -51,6 +53,13 @@ class Neuron:
     
     def getWeights(self):
         return self.weights
+
+    def setDeltaSum(self, deltasum):
+        self.deltaSum = deltasum
+        return self
+
+    def getDeltaSum(self):
+        return self.deltaSum
 
 class Layer:
     #
@@ -227,20 +236,26 @@ class Net:
         print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
-        oldweights = cp.copy(self.getWeights())
+        oldweights = cp.deepcopy(self.getWeights())
         for j in range(len(self.getWeights()), 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())):
                 if j == len(self.getWeights()):
                     deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * self.error[ds]
+                    self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 else:
-                    deltaSum = deltaSum / oldweights[j+1][0][ds] * ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
+                    deltaSum = 0
+                    for neur in range(0, len(self.getLayer(j+1).getNeurons())):
+                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * oldweights[j+1][0][neur]
+                    self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
-                self.layers[j].weights[ds] = self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T
+                self.getLayer(j).weights[ds] = self.getLayer(j).weights[ds] + self.learning_rate * deltaWeights.T
                 self.getLayer(j).getNeuron(ds).setWeights(self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T)
                 #update bias weights
+                #it seems that possibly bias doesn't have to be updated
+                # or it should be do along with the weights of the neurons
                 if self.getLayer(j-1).getBias():
                     bias = self.getLayer(j-1).getBias()
-                    bias.weights[ds] = bias.weights[ds] + (self.learning_rate * deltaWeights[ds])
+                    bias.weights[ds] = bias.weights[ds] + (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j).getNeuron(ds).getValue())
 
 class ActivationFn:
     @staticmethod
