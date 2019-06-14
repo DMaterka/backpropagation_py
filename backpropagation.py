@@ -245,7 +245,7 @@ class Net:
                 else:
                     deltaSum = 0
                     for neur in range(0, len(self.getLayer(j+1).getNeurons())):
-                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * oldweights[j+1][0][neur]
+                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * oldweights[j+1][neur][ds]
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
                 self.getLayer(j).weights[ds] = self.getLayer(j).weights[ds] + self.learning_rate * deltaWeights.T
