@@ -6,26 +6,26 @@ import numpy as np
 # reprezentowane przez XOR
 
 numit = 3
-inputs = np.array([[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]])
-results = np.array([[0.99], [0.01], [0.01], [0.99]])
+inputs = [[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]]
+results = [[0.99], [0.01], [0.01], [0.99]]
 
 # train the network
-net = Net("name", np.array([[0.99, 0.99]]), np.array([[0.01]]))
+net = Net("name", [[0.99, 0.99]], [[0.01]])
 
 # set input layer
 inputLayer = Layer()
-inputLayer.setNeurons(np.array([[0.99, 0.99]]), 1)
+inputLayer.setNeurons([[0.99, 0.99]], 1)
 net.setLayer(0, inputLayer)
 
 # set hidden layer
 hiddenLayer = Layer()
-hiddenLayer.setNeurons([0, 0, 0])
+hiddenLayer.setNeurons([[0, 0, 0]])
 hiddenLayer.setWeights([[.8, .2], [.4, .9], [.3, .5]])
 net.setLayer(1, hiddenLayer)
 
 # set second hidden layer
 outputLayer = Layer()
-outputLayer.setNeurons([0])
+outputLayer.setNeurons([[0]])
 net.setLayer(2, outputLayer)
 net.getLayer(2).setWeights([[.3, .5, .9]])
 

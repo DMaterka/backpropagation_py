@@ -20,7 +20,6 @@ class Neuron:
     
     def __init__(self, is_bias=False):
         self.is_bias = is_bias
-        return None
     
     def setValue(self, value):
         if self.is_bias:
@@ -71,22 +70,22 @@ class Layer:
     weights = {}
     bias = None
     
-    def setNeurons(self, sums, immutable=0):
-        t = np.resize(sums, (np.size(sums), 1))
-        self.neurons = [Neuron() for i in range(len(t))]
-        for i in range(len(t)):
+    def setNeurons(self, sums: list, immutable=0):
+        sums = np.array(sums)
+        self.neurons = [Neuron() for i in range(0, np.size(sums))]
+        for i in range(0, np.size(sums[0], 0)):
             if debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
-            self.neurons[i].setSum(t[i])
+            self.neurons[i].setSum(sums[0][i])
             if immutable != 1:
-                self.neurons[i].setValue(ActivationFn().sigmoid(t[i]))
+                self.neurons[i].setValue(ActivationFn().sigmoid(sums[0][i]))
             else:
-                self.neurons[i].setValue(t[i])
+                self.neurons[i].setValue(sums[0][i])
     
     def getNeurons(self):
         return self.neurons
     
-    def getNeuron(self, index):
+    def getNeuron(self, index: int):
         return self.neurons[index]
     
     def setBias(self, weights):
@@ -105,6 +104,7 @@ class Layer:
     def getValues(self):
         tmparr = np.zeros(np.shape(self.neurons))
         for i in range(0, len(self.neurons)):
+            t1 = self.neurons[i].getValue()
             tmparr[i] = self.neurons[i].getValue()
         return np.expand_dims(tmparr, 1)
     
@@ -114,7 +114,7 @@ class Layer:
             tmparr = np.append(tmparr, self.neurons[i].getSum())
         return tmparr
     
-    def setWeights(self, weights):
+    def setWeights(self, weights: list):
         self.weights = np.array(weights)
         for i in range(0, len(weights)):
             self.getNeuron(i).setWeights(weights[i])
@@ -231,8 +231,10 @@ class Net:
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
         self.error = self.results - self.getLayer(i+1).getValues()
+        #error must have the dimensions 'flat'
         if np.shape(self.error) != np.shape(self.results):
-            raise Exception('Error must have the same shape as the results')
+            pass
+            # raise Exception('Error must have the same shape as the results')
         print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
