@@ -8,9 +8,11 @@ debug = 0
 
 
 class Neuron:
-    # basic type
-    # set value
-    # set sum
+    """
+    basic type
+    set value
+    set sum
+    """
     
     value = 0
     sum = 0
@@ -60,19 +62,19 @@ class Neuron:
     def getDeltaSum(self):
         return self.deltaSum
 
+
 class Layer:
-    #
-    # Get number of neurons
-    # set neurons' values
-    #
+    """
+    Get number of neurons
+    set neurons' values
+    """
     neurons = {}
-    layerSum = 0
     weights = {}
     bias = None
     
     def setNeurons(self, sums: list, immutable=0):
         sums = np.array(sums)
-        self.neurons = [Neuron() for i in range(0, np.size(sums))]
+        self.neurons = [Neuron() for i in range(0, np.size(sums[0], 0))]
         for i in range(0, np.size(sums[0], 0)):
             if debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
@@ -98,19 +100,23 @@ class Layer:
         return self.bias
     
     def getBiasWeights(self):
-        if self.bias != None:
+        if self.bias is not None:
             return np.array(self.bias.getWeights()).T
         
     def getValues(self):
-        tmparr = np.zeros(np.shape(self.neurons))
+        """ Get values of the layer's neurons"""
+        tmparr1 = []
         for i in range(0, len(self.neurons)):
-            t1 = self.neurons[i].getValue()
-            tmparr[i] = self.neurons[i].getValue()
-        return np.expand_dims(tmparr, 1)
+            tmparr1.append(self.neurons[i].getValue())
+        tmparr1 = np.array(tmparr1)
+        if np.ndim(tmparr1) == 1:
+            tmparr1 = np.expand_dims(tmparr1,1)
+        return tmparr1
     
     def getSums(self):
+        """ Get neurons sums in the layer"""
         tmparr = np.array([])
-        for i in (range(len(self.neurons))):
+        for i in range(len(self.neurons)):
             tmparr = np.append(tmparr, self.neurons[i].getSum())
         return tmparr
     
@@ -125,9 +131,10 @@ class Layer:
 
 
 class Net:
-    # contains layers
-    # make a forward and backpropagation
-    # return layer at any moment
+    """ contains layers
+    make a forward and backpropagation
+    return layer at any moment
+    """
     dims = 0
     name = ''
     weights = {}
@@ -156,7 +163,7 @@ class Net:
             self.weights = np.array(weights, dtype=object)
             for i in range(0, self.getNeurons()):
                 self.getNeurons(i).setWeights(self.weights[i])
-        if(weights == {}):
+        if weights == {}:
             len(self.getLayers())
             for index, value in self.getLayers().items():
                 if index > 0:
@@ -174,7 +181,7 @@ class Net:
         return self
     
     def getWeights(self, layer=0) -> np.array:
-        if(layer):
+        if layer:
             return self.getLayer(layer).getWeights()
         else:
             layers = self.getLayers()
@@ -210,7 +217,7 @@ class Net:
         return self.name
 
     def forwardPropagate(self):
-        # validate network
+        """ calculate network values from weights and activation function"""
         if np.size(self.results) != np.size(self.getLayer(len(self.getLayers())-1).getValues()):
             # print(np.shape(self.results))
             # print(np.shape(self.getLayer(len(self.getLayers())-1).getNeurons()))
@@ -222,10 +229,10 @@ class Net:
             nextLayer = self.getLayer(i+1)
             if debug:
                 print("I set the " + str(i) + " layer: " + str(nextLayer) + " of network " + str(self))
-            # produce neurons' sums and values
+            """ produce neurons' sums and values """
             for j in range(0, len(nextLayer.getNeurons())):
                 sum = np.dot(nextLayer.getWeights()[j], currentLayer.getValues())
-                if currentLayer.getBias() != None:
+                if currentLayer.getBias() != None :
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
                 nextLayer.getNeuron(j).setSum(sum)
@@ -257,7 +264,10 @@ class Net:
                 # or it should be do along with the weights of the neurons
                 if self.getLayer(j-1).getBias():
                     bias = self.getLayer(j-1).getBias()
-                    bias.weights[ds] = bias.weights[ds] + (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j).getNeuron(ds).getValue())
+                    biasValue = bias.weights[ds] + (
+                                self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(
+                            j).getNeuron(ds).getValue())
+                    np.append(bias.weights, biasValue)
 
 class ActivationFn:
     @staticmethod

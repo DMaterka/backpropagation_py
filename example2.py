@@ -1,8 +1,8 @@
 from backpropagation import Net
 from backpropagation import Layer
-# dane testowe oraz wynik jako jeden wiersz tablicy
-# reprezentowane przez XOR
-#@TODO small differences of -4 order
+"""dane testowe oraz wynik jako jeden wiersz tablicy reprezentowane przez XOR
+@TODO small differences of -4 order
+"""
 numit = 3
 
 test_inputs = [[.05, .1]]

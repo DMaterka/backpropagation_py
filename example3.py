@@ -1,5 +1,6 @@
 from backpropagation import Net
 from backpropagation import Layer
+from datetime import datetime
 #@TODO
 numit = 1000
 inputs = [[.01, .99, .01, .01, .99, .99, .99, .01]]
@@ -40,10 +41,11 @@ net.setLayer(4, outputLayer)
 
 # net.setWeights()
 net.setResults(results)
+timeNow = datetime.now()
 for i in range(1, numit):
     net.forwardPropagate()
     net.backPropagate()
-
-print('results')
+duration = datetime.now() - timeNow
+print('network trained in ' + str(duration.total_seconds()) + ' seconds')
 net.forwardPropagate()
 # validate the network
