@@ -3,6 +3,7 @@
 # and open the template in the editor.
 import numpy as np
 import copy as cp
+import matplotlib.pyplot as plt
 
 debug = 0
 
@@ -19,6 +20,7 @@ class Neuron:
     is_bias = 0
     weights = None
     deltaSum = None
+    position = None
     
     def __init__(self, is_bias=False):
         self.is_bias = is_bias
@@ -61,7 +63,10 @@ class Neuron:
 
     def getDeltaSum(self):
         return self.deltaSum
-
+    
+    def setPosition(self, position: list):
+        self.position = position
+        return self
 
 class Layer:
     """
@@ -74,15 +79,15 @@ class Layer:
     
     def setNeurons(self, sums: list, immutable=0):
         sums = np.array(sums)
-        self.neurons = [Neuron() for i in range(0, np.size(sums[0], 0))]
-        for i in range(0, np.size(sums[0], 0)):
+        self.neurons = [Neuron() for i in range(0, len(sums))]
+        for i in range(0, len(sums)):
             if debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
-            self.neurons[i].setSum(sums[0][i])
+            self.neurons[i].setSum(sums[i])
             if immutable != 1:
-                self.neurons[i].setValue(ActivationFn().sigmoid(sums[0][i]))
+                self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
             else:
-                self.neurons[i].setValue(sums[0][i])
+                self.neurons[i].setValue(sums[i])
     
     def getNeurons(self):
         return self.neurons
@@ -105,13 +110,13 @@ class Layer:
         
     def getValues(self):
         """ Get values of the layer's neurons"""
-        tmparr1 = []
+        values = []
         for i in range(0, len(self.neurons)):
-            tmparr1.append(self.neurons[i].getValue())
-        tmparr1 = np.array(tmparr1)
-        if np.ndim(tmparr1) == 1:
-            tmparr1 = np.expand_dims(tmparr1,1)
-        return tmparr1
+            values.append(self.neurons[i].getValue())
+        values = np.array(values)
+        if np.ndim(values) == 1:
+            values = np.expand_dims(values, 1)
+        return values
     
     def getSums(self):
         """ Get neurons sums in the layer"""
@@ -177,7 +182,7 @@ class Net:
                         for i in range(0, neuronsCount):
                             self.layers[index].getNeuron(i).setWeights(np.random.rand(1, neurons2Count))
                     else:
-                        self.layers[index].setWeights(np.random.rand(neuronsCount, neurons2Count))
+                        self.layers[index].setWeights(np.random.rand(len(self.inputs), neuronsCount, neurons2Count))
         return self
     
     def getWeights(self, layer=0) -> np.array:
@@ -198,7 +203,7 @@ class Net:
         return self.inputs
 
     def setResults(self, results):
-        self.results = results
+        self.results = np.array(results)
         return self
         
     def getResults(self):
@@ -231,7 +236,7 @@ class Net:
                 print("I set the " + str(i) + " layer: " + str(nextLayer) + " of network " + str(self))
             """ produce neurons' sums and values """
             for j in range(0, len(nextLayer.getNeurons())):
-                sum = np.dot(nextLayer.getWeights()[j], currentLayer.getValues())
+                sum = np.dot(nextLayer.getNeuron(j).getWeights(), currentLayer.getValues())
                 if currentLayer.getBias() != None :
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
@@ -245,7 +250,7 @@ class Net:
         print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
-        oldweights = cp.deepcopy(self.getWeights())
+        oldSelf = cp.deepcopy(self)
         for j in range(len(self.getWeights()), 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())):
                 if j == len(self.getWeights()):
@@ -254,11 +259,13 @@ class Net:
                 else:
                     deltaSum = 0
                     for neur in range(0, len(self.getLayer(j+1).getNeurons())):
-                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * oldweights[j+1][neur][ds]
+                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * \
+                                    oldSelf.getLayer(j+1).getNeuron(neur).getWeights()[ds]
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
-                self.getLayer(j).weights[ds] = self.getLayer(j).weights[ds] + self.learning_rate * deltaWeights.T
-                self.getLayer(j).getNeuron(ds).setWeights(self.layers[j].weights[ds] + self.learning_rate * deltaWeights.T)
+                self.getLayer(j).getNeuron(ds).setWeights(
+                    self.getLayer(j).getNeuron(ds).getWeights() + self.learning_rate * deltaWeights[0]
+                )
                 #update bias weights
                 #it seems that possibly bias doesn't have to be updated
                 # or it should be do along with the weights of the neurons
@@ -268,7 +275,42 @@ class Net:
                                 self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(
                             j).getNeuron(ds).getValue())
                     np.append(bias.weights, biasValue)
-
+                    
+    def print_network(self):
+        fig, axs = plt.subplots()
+        axs.set_xlim((0, 100))
+        axs.set_ylim((0, 100))
+        posx = 10
+        radius = 10
+        for layer_index in range(len(self.getLayers())):
+            interval = 100 / (len(
+                self.getLayer(layer_index).getNeurons()) + 1)
+            posy = interval
+            for neuron_index in range(len(self.getLayer(layer_index).getNeurons())):
+                axs.add_artist(plt.Circle((posx, posy), radius))
+                text_to_show = 'sum:' + '{:.2f}'.format(self.getLayer(layer_index).getNeuron(neuron_index).getSum()[0])
+                text_to_show += "\n" + 'value:' + "{:.2f}".format(
+                    self.getLayer(layer_index).getNeuron(neuron_index).getValue()[0]
+                )
+                plt.text(posx, posy, text_to_show, fontsize=12)
+                if layer_index > 0:
+                    weights = ''
+                    for weight_index in range(0, len(self.getLayer(layer_index).getNeuron(neuron_index).getWeights())):
+                        weight_value = self.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index]
+                        if np.ndim(weight_value) == 0:
+                            weight_value = np.expand_dims(
+                                self.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index], 1
+                            )
+                        weights += '{:.2f}'.format(weight_value[0]) + "\n"
+                    plt.text(posx - radius, posy-0.5*interval, weights, fontsize=12)
+                posy += interval
+                self.getLayer(layer_index).getNeuron(neuron_index).setPosition([posx, posy])
+            posx += radius*4
+            
+        fig.tight_layout()
+    
+        plt.show()
+        
 class ActivationFn:
     @staticmethod
     def sigmoid(x):
