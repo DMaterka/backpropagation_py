@@ -1,25 +1,21 @@
-#  backpropagation in python
+#  Backpropagation in python
 
 This project is mainly for educational purpose. It will implement neural network backpropagation alghoritm. 
 There will be provided examples of use with the data which have been checked manually. 
 
 Currently there are are a couple of examples of backpropagation in action. 
 
-The first one comes from the page: http://stevenmiller888.github.io/mind-how-to-build-a-neural-network/
+## Example1
 
-and resolves the simple backpropagation network problem of grouping of xor outputs with non-linear separation function. 
+Simple backpropagation network problem of grouping of xor outputs with non-linear separation function. 
 
 This demonstrates the weighed neurons in action. There is a sigmoid function used and the inputs are only 1,1
-
-To test out any of the examples type:
 
 ```
 python3 example1.py
 ```
-etc. 
 
-## The todo list
-Check 
+[1] http://stevenmiller888.github.io/mind-how-to-build-a-neural-network/
 
 ## Features
 
@@ -35,4 +31,4 @@ This project is released under the MIT Licence.
 
 ## Author
 
-Daniel Materka
+Daniel Materka 
