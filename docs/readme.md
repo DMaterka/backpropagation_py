@@ -27,6 +27,7 @@ To determine if the neuron activates, now let's apply the activation function.
 The function is well known in neural network world Sigmoid Function 
 
 ![equation2](./assets/eq2.png)
+
 [2] todo source
 
 hence the Activated value of the neuron used in further computations is equal to $$ A(x) = S(V(x)) $$
