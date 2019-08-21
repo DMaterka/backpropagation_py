@@ -14,8 +14,6 @@ The simple neural network with 3 layers looks like below:
 
 ![diagram](./assets/diagram1.png)
 
-[1] Diagram generated at https://www.draw.io/
-
 There are two main steps to compute the next iteration - forward and backward pass. 
 Every step has been provided with the data from its related demonstration scripts (examples).
 
@@ -65,6 +63,12 @@ which has been changed from 1 to 0.99 and from 0 to 0.01 in order to avoid divis
 ## License
 
 This project is released under the MIT Licence.
+
+## References
+
+1. http://latex2png.com/ generating equation images from latex
+
+2. https://www.draw.io/  crating and generating diagram to/from svg
 
 ## Author
 
