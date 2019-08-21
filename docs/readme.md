@@ -1,5 +1,3 @@
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML"></script>
-
 #  Backpropagation in python
 
 This project is mainly for educational purpose. It will implement neural network backpropagation algorithm.
@@ -24,16 +22,13 @@ Every step has been provided with the data from its related demonstration script
 ## Forwardpropagation
 This step aims to calculate the sum of the neurons and applies activation function to determine if the neuron has been activated. 
 Let V(x) be the dot product of previous layer neurons values. 
-$$
-V(x) = \sum_n I_n \times W_{I_nH_x}
-$$
+
+![equation1](./assets/eq1.png)
 
 To determine if the neuron activates, now let's apply the activation function. 
 The function is well known in neural network world Sigmoid Function 
 
-$$
-S(x) = {1 \over 1 + \exp^{-x}}
-$$
+![equation2](./assets/eq2.png)
 [2] todo source
 
 hence the Activated value of the neuron used in further computations is equal to $$ A(x) = S(V(x)) $$
