@@ -14,7 +14,7 @@ Currently there are a couple of examples of backpropagation implemented to illus
 
 The simple neural network with 3 layers looks like below:
 
-[diagram](./assets/diagram1.png)
+![diagram](./assets/diagram1.png)
 
 [1] Diagram generated at https://www.draw.io/
 
