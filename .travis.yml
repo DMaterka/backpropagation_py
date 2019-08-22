@@ -5,14 +5,15 @@ sudo: required
 dist: trusty
 
 python:
-  - 3.4
+  - 3.7
 virtualenv:
     system_site_package: true
 before_install:
  - sudo apt-get update
  - sudo apt-get install -qq python3-numpy
+ - sudo pip3 install matplotlib
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m unittest example1_test.py; fi
+  - python -m example1_test.py
 
 notifications:
   email:
