@@ -15,7 +15,7 @@ before_install:
 script:
 # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python -m unittest discover; fi
 # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python -m unittest discover; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m example1.py; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python3 example1.py; fi
 
 notifications:
   email:
