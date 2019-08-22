@@ -11,7 +11,7 @@ virtualenv:
 before_install:
  - sudo apt-get update
  - sudo apt-get install -qq python3-numpy
- - sudo pip3 install matplotlib
+ - sudo pip install matplotlib
 script:
   - python -m example1_test.py
 
