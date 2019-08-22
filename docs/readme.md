@@ -1,4 +1,6 @@
-#  Backpropagation in python
+#  Backpropagation in python              
+
+![build](https://travis-ci.org/DMaterka/backpropagation_py.svg?branch=master)
 
 This project is mainly for educational purpose. It will implement neural network backpropagation algorithm.
 
