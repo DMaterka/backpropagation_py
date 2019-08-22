@@ -10,16 +10,13 @@ python:
 virtualenv:
     system_site_package: true
 before_install:
-# - sudo add-apt-repository -y ppa:edd/misc
  - sudo apt-get update
- - sudo apt-get install -qq python-numpy python-six
- - sudo apt-get install libquantlib0-dev
- - pip install -r requirements.txt
-#install:
-#    make build
+ - sudo apt-get install -qq python-numpy
 script:
- - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python -m unittest discover; fi
- - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m unittest discover; fi
+# - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python -m unittest discover; fi
+# - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python -m unittest discover; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m example1.py; fi
+
 notifications:
   email:
     - daniel.materka+backprop@gmail.com
