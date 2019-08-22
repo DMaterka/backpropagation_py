@@ -10,7 +10,7 @@ virtualenv:
     system_site_package: true
 before_install:
  - sudo apt-get update
- - sudo apt-get install -qq python-numpy python-matplotlib
+ - sudo apt-get install -qq python3-numpy python3-matplotlib
 script:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python3 example1.py; fi
 
