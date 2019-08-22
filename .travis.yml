@@ -12,7 +12,7 @@ before_install:
  - sudo apt-get update
  - sudo apt-get install -qq python3-numpy
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m unittest discover; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python -m unittest example1_test.py; fi
 
 notifications:
   email:
