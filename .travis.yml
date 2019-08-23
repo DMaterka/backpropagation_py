@@ -5,13 +5,13 @@ sudo: required
 dist: trusty
 
 python:
-  - 3.4
+  - 3.6
 virtualenv:
     system_site_package: true
 before_install:
  - sudo apt-get update
- - sudo apt-get install -qq python3-numpy
- - sudo pip install matplotlib
+ - sudo apt-get install -qq g++ freetype-dev
+ - sudo pip install -r requirements.txt
 script:
   - python -m example1_test.py
 
