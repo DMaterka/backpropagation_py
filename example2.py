@@ -5,7 +5,7 @@ from backpropagation import Layer
 """
 numit = 3
 
-test_inputs = [[.05, .1]]
+test_inputs = [[.05], [.1]]
 test_outputs = [[.01], [.99]]
 
 # train the network
@@ -19,14 +19,14 @@ net.setLayer(0, inputLayer)
 
 # set hidden layer
 hiddenLayer = Layer()
-hiddenLayer.setNeurons([[0, 0]])
+hiddenLayer.setNeurons([[0], [0]])
 hiddenLayer.setBias([.6, .6])
 hiddenLayer.setWeights([[.15, .20], [.25, .3]])
 net.setLayer(1, hiddenLayer)
 
 # set output layer
 outputLayer = Layer()
-outputLayer.setNeurons([[0, 0]])
+outputLayer.setNeurons([[0], [0]])
 outputLayer.setWeights([[.4, .45], [.50, .55]])
 net.setLayer(2, outputLayer)
 

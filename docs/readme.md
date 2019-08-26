@@ -30,7 +30,7 @@ The function is well known in neural network world Sigmoid Function
 
 ![equation2](./assets/eq2.png)
 
-[2] todo source
+[x] todo source
 
 hence the Activated value of the neuron used in further computations is equal to $$ A(x) = S(V(x)) $$
 
@@ -41,19 +41,30 @@ hence the Activated value of the neuron used in further computations is equal to
 
 Simple backpropagation network problem of grouping of xor outputs with non-linear separation function.
 
-This demonstrates the weighed neurons in action. There is a sigmoid function used and the inputs are only 1,1
+This example demonstrates the weighed neurons in action.
 
+The sigmoid function is used for activating neurons. 
+
+The initial value of input neurons are 1,1 which has been changed to 0.99 to overcome possible division by zero problems.
 ```
 python3 example1.py
 ```
 
 The data comes from the page: 
 
-[3] http://stevenmiller888.github.io/mind-how-to-build-a-neural-network/
+[x] http://stevenmiller888.github.io/mind-how-to-build-a-neural-network/
 
 The computation from [3] and in Example1.py script of this program are cross validated so all the weights and sums are 
 identical except of input layer, 
 which has been changed from 1 to 0.99 and from 0 to 0.01 in order to avoid division over zero issues. 
+
+## Example2
+
+The example comes from the page:
+[x] https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
+
+It is different from the previous example by using bias neurons, and multiple neurons in output layer. 
+
 
 ## Features
 

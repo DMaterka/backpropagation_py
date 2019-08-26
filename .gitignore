@@ -4,3 +4,5 @@ nbproject/
 nbproject/*
 __pycache__/*
 nb-configuration.xml
+.idea/
+.idea/*

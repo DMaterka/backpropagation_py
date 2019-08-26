@@ -3,8 +3,9 @@ import backpropagation
 import numpy as np
 
 
-class Test1DNetwork(unittest.TestCase):
-    """Testing the neural network structure"""
+class Test0DNetwork(unittest.TestCase):
+    """Testing the neural network structure where the network elements are numbers
+    (in contrary to lists and multidimensional arrays)"""
 
     def setUp(self):
         """Set up testing objects"""
