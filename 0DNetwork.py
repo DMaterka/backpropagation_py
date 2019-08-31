@@ -1,20 +1,20 @@
 from backpropagation import Net
 from backpropagation import Layer
-import numpy as np
 
 # dane testowe oraz wynik jako jeden wiersz tablicy
 # reprezentowane przez XOR
 
+#parameters
 numit = 3
 inputs = [[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]]
 results = [[0.99], [0.01], [0.01], [0.99]]
 
 # train the network
-net = Net("name", [[0.99, 0.99]], [[0.01]])
+net = Net("0dnet", [[0.99], [0.99]], [[0.01]])
 
 # set input layer
 inputLayer = Layer()
-inputLayer.setNeurons([[0.99], [0.99]], 1)
+inputLayer.setNeurons([[0.99], [0.01]], 1)
 net.setLayer(0, inputLayer)
 
 # set hidden layer
@@ -34,12 +34,12 @@ for i in range(1, numit):
     # net.getLayer(0).setNeurons(np.array([[0.99, 0.99]]), 1)
     # net.setResults(np.array([[0.01]]))
     net.forwardPropagate()
-    net.print_network()
+    # net.print_network()
     net.backPropagate()
 
 print('expected results: [[0.77381515]] and [[0.69075]]')
-net.setInputs(inputs[2])
-net.forwardPropagate()
+
+net.getLayer(len(net.getLayers().getValues()))
 
 # #store the network
 # conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)

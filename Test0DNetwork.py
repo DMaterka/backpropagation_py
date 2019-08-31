@@ -14,7 +14,7 @@ class Test0DNetwork(unittest.TestCase):
         results = [[0.99], [0.01], [0.01], [0.99]]
 
         # train the network
-        self.net = backpropagation.Net("name", [[0.99, 0.99]], [[0.01]])
+        self.net = backpropagation.Net("0dnet", [[0.99, 0.99]], [[0.01]])
 
         # set input layer
         inputLayer = backpropagation.Layer()
@@ -58,6 +58,7 @@ class Test0DNetwork(unittest.TestCase):
             self.net.getLayer(2).getNeuron(0).getWeights(),
             np.array([0.20871799, 0.40871799, 0.80871799])
         ))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

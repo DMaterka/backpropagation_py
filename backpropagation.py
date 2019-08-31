@@ -4,6 +4,7 @@
 import numpy as np
 import copy as cp
 import matplotlib.pyplot as plt
+import numpy.matlib
 
 debug = 0
 
@@ -247,7 +248,6 @@ class Net:
         if np.shape(self.error) != np.shape(self.results):
             pass
             # raise Exception('Error must have the same shape as the results')
-        print(self.getLayer(i + 1).getValues())
 
     def backPropagate(self):
         oldSelf = cp.deepcopy(self)
@@ -262,10 +262,16 @@ class Net:
                         deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * \
                                     oldSelf.getLayer(j+1).getNeuron(neur).getWeights()[ds]
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
-                deltaWeights = deltaSum * self.getLayer(j - 1).getValues()
-                self.getLayer(j).getNeuron(ds).setWeights(
-                    self.getLayer(j).getNeuron(ds).getWeights() + self.learning_rate * deltaWeights[0]
-                )
+                deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j - 1).getValues()
+                rows_number = np.shape(self.inputs)[0]
+                if rows_number > 1:
+                    newWeights = np.matlib.repmat(
+                        self.getLayer(j).getNeuron(ds).getWeights(),
+                        rows_number-1,
+                        1).T + (self.learning_rate * deltaWeights)
+                else:
+                    newWeights = self.getLayer(j).getNeuron(ds).getWeights() + self.learning_rate * deltaWeights[0]
+                self.getLayer(j).getNeuron(ds).setWeights(newWeights)
                 #update bias weights
                 #it seems that possibly bias doesn't have to be updated
                 # or it should be do along with the weights of the neurons
