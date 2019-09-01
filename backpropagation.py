@@ -266,12 +266,13 @@ class Net:
                                     oldSelf.getLayer(j+1).getNeuron(neur).getWeights()[ds]
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j - 1).getValues()
+                weights = self.getLayer(j).getNeuron(ds).getWeights()
                 rows_number = np.shape(self.getInputs())[1]
                 if rows_number > 1:
                     newWeights = np.matlib.repmat(
                         self.getLayer(j).getNeuron(ds).getWeights(),
-                        rows_number-1,
-                        1).T + (self.learning_rate * deltaWeights)
+                        rows_number,
+                        1) + (self.learning_rate * deltaWeights)
                 else:
                     newWeights = self.getLayer(j).getNeuron(ds).getWeights() + self.learning_rate * deltaWeights[0]
                 self.getLayer(j).getNeuron(ds).setWeights(newWeights)

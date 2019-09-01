@@ -12,11 +12,6 @@ results = [[0.99], [0.01], [0.01], [0.99]]
 # train the network
 net = Net("0dnet", [[0.99], [0.99]], [[0.01]])
 
-# set input layer
-inputLayer = Layer()
-inputLayer.setNeurons([[0.99], [0.01]], 1)
-net.setLayer(0, inputLayer)
-
 # set hidden layer
 hiddenLayer = Layer()
 hiddenLayer.setNeurons([[0], [0], [0]])
@@ -37,9 +32,7 @@ for i in range(1, numit):
     # net.print_network()
     net.backPropagate()
 
-print('expected results: [[0.77381515]] and [[0.69075]]')
-
-net.getLayer(len(net.getLayers().getValues()))
+print(net.getLayer(len(net.getLayers())-1).getValues())
 
 # #store the network
 # conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)

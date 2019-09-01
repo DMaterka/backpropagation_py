@@ -5,17 +5,12 @@ import numpy as np
 # dane testowe oraz wynik jako jeden wiersz tablicy
 # reprezentowane przez XOR
 
-numit = 1000
+numit = 3
 inputs = [[0.99, 0.99, 0.01, 0.01], [0.99, 0.01, 0.99, 0.01]]
 results = [0.01, 0.99, 0.99, 0.01]
 
 # train the network
 net = Net("1dnet", inputs, results)
-
-# set input layer
-inputLayer = Layer()
-inputLayer.setNeurons(inputs, 1)
-net.setLayer(0, inputLayer)
 
 # set hidden layer
 hiddenLayer = Layer()
@@ -37,8 +32,7 @@ for i in range(1, numit):
     # net.print_network()
     net.backPropagate()
 
-net.setInputs(inputs[2])
-net.forwardPropagate()
+print(net.getLayer(len(net.getLayers())-1).getValues())
 
 # #store the network
 # conn = sqlite3.connect(cfg.DbConfig.DIR + cfg.DbConfig.NAME)

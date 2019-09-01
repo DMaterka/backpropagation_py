@@ -9,17 +9,8 @@ class Test0DNetwork(unittest.TestCase):
 
     def setUp(self):
         """Set up testing objects"""
-        numit = 3
-        inputs = [[0.01, 0.99], [0.01, 0.01], [0.99, 0.99], [0.99, 0.01]]
-        results = [[0.99], [0.01], [0.01], [0.99]]
-
         # train the network
         self.net = backpropagation.Net("0dnet", [[0.99, 0.99]], [[0.01]])
-
-        # set input layer
-        inputLayer = backpropagation.Layer()
-        inputLayer.setNeurons([[0.99], [0.99]], 1)
-        self.net.setLayer(0, inputLayer)
 
         # set hidden layer
         hiddenLayer = backpropagation.Layer()

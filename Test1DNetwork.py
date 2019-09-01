@@ -15,18 +15,13 @@ class Test1DNetwork(unittest.TestCase):
         # train the network
         self.net = backpropagation.Net("1dnet", inputs, results)
 
-        # set input layer
-        inputLayer = backpropagation.Layer()
-        inputLayer.setNeurons(inputs, 1)
-        self.net.setLayer(0, inputLayer)
-
         # set hidden layer
         hiddenLayer = backpropagation.Layer()
         hiddenLayer.setNeurons([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
         hiddenLayer.setWeights([[.3, .5], [.4, .9], [.8, .2]])
         self.net.setLayer(1, hiddenLayer)
 
-        # set second hidden layer
+        # set output layer
         outputLayer = backpropagation.Layer()
         outputLayer.setNeurons([[0, 0, 0, 0]])
         self.net.setLayer(2, outputLayer)
