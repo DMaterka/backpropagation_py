@@ -150,9 +150,12 @@ class Net:
 
     def __init__(self, name, inputs, results, learning_rate=1):
         self.setName(name)
-        self.setInputs(inputs)
         self.setResults(results)
         self.learning_rate = learning_rate
+        # set input layer
+        inputLayer = Layer()
+        inputLayer.setNeurons(inputs, 1)
+        self.setLayer(0, inputLayer)
         
     def setLayer(self, index, layer):
         self.layers[index] = layer
@@ -201,7 +204,7 @@ class Net:
         return self
         
     def getInputs(self):
-        return self.inputs
+        return self.getLayer(0).getValues()
 
     def setResults(self, results):
         self.results = np.array(results)
@@ -263,7 +266,7 @@ class Net:
                                     oldSelf.getLayer(j+1).getNeuron(neur).getWeights()[ds]
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j - 1).getValues()
-                rows_number = np.shape(self.inputs)[0]
+                rows_number = np.shape(self.getInputs())[1]
                 if rows_number > 1:
                     newWeights = np.matlib.repmat(
                         self.getLayer(j).getNeuron(ds).getWeights(),
