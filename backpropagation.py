@@ -227,7 +227,7 @@ class Net:
 
     def forwardPropagate(self):
         """ calculate network values from weights and activation function"""
-        if np.size(self.results) != np.size(self.getLayer(len(self.getLayers())-1).getValues()):
+        if np.size(self.results) != np.size(self.getLayer(0).getNeuron(0).getValue()):
             raise Exception('Results size must match input neuron size!')
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)

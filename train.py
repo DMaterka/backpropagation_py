@@ -10,7 +10,7 @@ if __name__ == "__main__":
     iterations = 1
     argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
+        opts, args = getopt.getopt(argv, "hi:o:n:", ["ifile=", "ofile="])
     except getopt.GetoptError:
         print('train.py -i <inputfile> -o <outputfile> -n <number of iterations> -s <network structure>')
         sys.exit(2)
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv(inputfile)
     
-    net = backpropagation.Net("nameToDO", [df["col1"][0], df["col2"][0]], [df["exp_result"][0]])
+    net = backpropagation.Net("nameToDO", [df["col1"], df["col2"]], [df["exp_result"]])
     
     # define number of layers and neurons
     
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     net.setLayer(2, outputLayer)
     net.getLayer(2).setWeights([[.3, .5, .9]])
 
-    for i in range(0, iterations):
+    for i in range(0, int(iterations)):
         # net.getLayer(0).setNeurons(np.array([[0.99, 0.99]]), 1)
         # net.setResults(np.array([[0.01]]))
         net.forwardPropagate()
