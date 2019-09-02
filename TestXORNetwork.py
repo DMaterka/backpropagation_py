@@ -3,7 +3,7 @@ import backpropagation
 import numpy as np
 
 
-class Test1DNetwork(unittest.TestCase):
+class TestXORNetwork(unittest.TestCase):
     """Testing the neural network structure where the network elements are lists of records
     (in contrary to single rows and multidimensional arrays)"""
 

@@ -5,8 +5,6 @@ import backpropagation
 import pandas as pd
 
 if __name__ == "__main__":
-    print('Number of arguments:', len(sys.argv), 'arguments.')
-    print('Argument List:', str(sys.argv))
     inputfile = ''
     outputfile = ''
     iterations = 1
@@ -28,9 +26,6 @@ if __name__ == "__main__":
             iterations = arg
         elif opt in ("-s", "--struc"):
             structure = arg
-            
-    print('Input file is "', inputfile)
-    print('Output file is "', outputfile)
 
     df = pd.read_csv(inputfile)
     

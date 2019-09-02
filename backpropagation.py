@@ -228,11 +228,7 @@ class Net:
     def forwardPropagate(self):
         """ calculate network values from weights and activation function"""
         if np.size(self.results) != np.size(self.getLayer(len(self.getLayers())-1).getValues()):
-            # print(np.shape(self.results))
-            # print(np.shape(self.getLayer(len(self.getLayers())-1).getNeurons()))
-            #check if layer has bias, then recalculate
-            # raise Exception('Results size must match last layer network!')
-            pass
+            raise Exception('Results size must match input neuron size!')
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
@@ -240,7 +236,13 @@ class Net:
                 print("I set the " + str(i) + " layer: " + str(nextLayer) + " of network " + str(self))
             """ produce neurons' sums and values """
             for j in range(0, len(nextLayer.getNeurons())):
-                sum = np.dot(nextLayer.getNeuron(j).getWeights(), currentLayer.getValues())
+                weights = nextLayer.getNeuron(j).getWeights()
+                values = currentLayer.getValues()
+                
+                sum = np.dot(weights.T, values)
+                if np.ndim(sum) > 1:
+                    sum = np.mean(sum, 1)
+                
                 if currentLayer.getBias() != None :
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
@@ -268,13 +270,14 @@ class Net:
                 deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j - 1).getValues()
                 weights = self.getLayer(j).getNeuron(ds).getWeights()
                 rows_number = np.shape(self.getInputs())[1]
-                if rows_number > 1:
-                    newWeights = np.matlib.repmat(
-                        self.getLayer(j).getNeuron(ds).getWeights(),
-                        rows_number,
-                        1) + (self.learning_rate * deltaWeights)
-                else:
-                    newWeights = self.getLayer(j).getNeuron(ds).getWeights() + self.learning_rate * deltaWeights[0]
+                
+                if np.shape(weights) != np.shape(deltaWeights):
+                    self.getLayer(j).getNeuron(ds).setWeights(
+                        np.matlib.repmat(self.getLayer(j).getNeuron(ds).getWeights(), rows_number, 1).T
+                    )
+                    
+                newWeights = self.getLayer(j).getNeuron(ds).getWeights() + (self.learning_rate * deltaWeights)
+                
                 self.getLayer(j).getNeuron(ds).setWeights(newWeights)
                 #update bias weights
                 #it seems that possibly bias doesn't have to be updated
