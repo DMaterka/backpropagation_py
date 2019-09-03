@@ -159,6 +159,9 @@ class Net:
         
     def setLayer(self, index, layer):
         self.layers[index] = layer
+        if len(layer.getWeights()) > 0:
+            if np.shape(layer.getWeights()) != (len(layer.getNeurons()), len(self.getLayer(index-1).getNeurons())):
+                raise Exception("Bad weights format")
         return self
 
     def getLayer(self, index):
@@ -172,6 +175,7 @@ class Net:
             self.weights = np.array(weights, dtype=object)
             for i in range(0, self.getNeurons()):
                 self.getNeurons(i).setWeights(self.weights[i])
+        #         to delete ?
         if weights == {}:
             len(self.getLayers())
             for index, value in self.getLayers().items():

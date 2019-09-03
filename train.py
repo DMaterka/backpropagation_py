@@ -3,14 +3,19 @@ import sys
 import getopt
 import backpropagation
 import pandas as pd
+import numpy as np
+import ast
 
 if __name__ == "__main__":
     inputfile = ''
     outputfile = ''
     iterations = 1
     argv = sys.argv[1:]
+    learning_rate = 1
+    structure = []
+    
     try:
-        opts, args = getopt.getopt(argv, "hi:o:n:", ["ifile=", "ofile="])
+        opts, args = getopt.getopt(argv, "hi:o:n:s:", ["ifile=", "ofile="])
     except getopt.GetoptError:
         print('train.py -i <inputfile> -o <outputfile> -n <number of iterations> -s <network structure>')
         sys.exit(2)
@@ -26,26 +31,24 @@ if __name__ == "__main__":
             iterations = arg
         elif opt in ("-s", "--struc"):
             structure = arg
-
+            
     df = pd.read_csv(inputfile)
     
-    net = backpropagation.Net("nameToDO", [df["col1"], df["col2"]], [df["exp_result"]])
+    net = backpropagation.Net("nameToDO", [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
     
     # define number of layers and neurons
     
     # input layer already set up
-
-    # set hidden layer
-    hiddenLayer = backpropagation.Layer()
-    hiddenLayer.setNeurons([[0], [0], [0]])
-    hiddenLayer.setWeights([[.3, .5], [.4, .9], [.8, .2]])
-    net.setLayer(1, hiddenLayer)
-
-    # set second hidden layer
-    outputLayer = backpropagation.Layer()
-    outputLayer.setNeurons([[0]])
-    net.setLayer(2, outputLayer)
-    net.getLayer(2).setWeights([[.3, .5, .9]])
+    if structure != []:
+        structure = ast.literal_eval(structure)
+    else:
+        structure = [3, 1]
+        
+    for index in range(0, len(structure)):
+        layer = backpropagation.Layer()
+        layer.setNeurons(np.zeros([structure[index], 1]))
+        layer.setWeights(np.random.rand(structure[index], len(net.getLayer(index).getNeurons())))
+        net.setLayer(index + 1, layer)
 
     for i in range(0, int(iterations)):
         # net.getLayer(0).setNeurons(np.array([[0.99, 0.99]]), 1)
@@ -55,3 +58,5 @@ if __name__ == "__main__":
         net.backPropagate()
         
     print("result is", net.getLayer(len(net.getLayers())-1).getValues())
+    print("error is", net.error)
+    # save model to database
