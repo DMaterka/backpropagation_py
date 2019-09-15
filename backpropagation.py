@@ -74,8 +74,8 @@ class Layer:
     Get number of neurons
     set neurons' values
     """
-    neurons = {}
-    weights = {}
+    neurons = []
+    weights = []
     bias = None
     
     def setNeurons(self, sums: list, immutable=0):
@@ -92,6 +92,10 @@ class Layer:
     
     def getNeurons(self):
         return self.neurons
+    
+    def setNeuron(self, neuron: Neuron):
+        self.neurons.append(neuron)
+        return self
     
     def getNeuron(self, index: int):
         return self.neurons[index]
