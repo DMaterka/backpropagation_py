@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import ast
 import sqlite3
+import json
 
 if __name__ == "__main__":
     inputfile = ''
@@ -72,19 +73,35 @@ if __name__ == "__main__":
         for layer_index in range(0, len(net.getLayers())):
             c.execute('INSERT INTO layers (layer_index, model_id) VALUES (?, ?)', (layer_index, modelid))
             layerid = c.lastrowid
-            for neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())-1):
+            for neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
                 c.execute('INSERT INTO neurons (neuron_index, layer_id) VALUES (?, ?)', (neuron_index, layerid))
+                neuron_id = c.lastrowid
                 if layer_index > 0:
-                    for weight_index in range(0, len(net.getLayer(layer_index).getNeuron(neuron_index).getWeights())):
-                        for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index-1).getNeurons())):
-                            weight = net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[neuron_index][prev_layer_neuron_index]
-                            c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                                      (prev_layer_neuron_index, weight_index, weight))
+                    for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index-1).getNeurons())):
+                        weights = net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[prev_layer_neuron_index]
+                        c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?', (prev_layer_neuron_index, layerid-1))
+                        prev_neuron = c.fetchone()
+                        c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
+                                  (prev_neuron['id'], neuron_id, json.dumps(weights.tolist())))
     elif total_error < results['error']:
-        c.execute('UPDATE models SET error=? WHERE id=?', (total_error, results['id']))
-        c.execute('SELECT * FROM layers WHERE model_id=?', (results['id']))
-        # TODO update weights if error is lower than existing
-        c.execute('SELECT * FROM weights WHERE layers=?', (results['id']))
+        modelid = results['id']
+        c.execute('UPDATE models SET error=? WHERE id=?', (total_error, modelid))
+        for layer_index in range(0, len(net.getLayers())):
+            c.execute('SELECT * FROM layers WHERE model_id=? AND layer_index=?', (modelid,layer_index))
+            layer = c.fetchone()
+            for neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
+                c.execute('SELECT * FROM neurons WHERE layer_id=? AND neuron_index=?', (layer['id'], neuron_index))
+                neuron = c.fetchone()
+                if layer_index > 0:
+                    for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index - 1).getNeurons())):
+                        weights = net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[prev_layer_neuron_index]
+                        c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?',
+                                  (prev_layer_neuron_index, layer['id'] - 1))
+                        prev_neuron = c.fetchone()
+                        c.execute('UPDATE weights SET weight=? WHERE neuron_from=? AND neuron_to=?',
+                                  (json.dumps(weights.tolist()), prev_neuron['id'], neuron['id']))
+    else:
+        print("The total error is the same as previous one")
         
     conn.commit()
     conn.close()
