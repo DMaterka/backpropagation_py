@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-import backpropagation
+from backpropagation import Layer, Net, Neuron
 import pandas as pd
-import numpy as np
 import sqlite3
 import json
 
@@ -28,9 +27,9 @@ if __name__ == "__main__":
             outputfile = arg
             
     df = pd.read_csv(inputfile)
+  
+    net = Net(inputfile, [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
     
-    net = backpropagation.Net(inputfile, [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
-
     # get model from database
     conn = sqlite3.connect('data/backprop.db')
     conn.row_factory = sqlite3.Row
@@ -39,27 +38,25 @@ if __name__ == "__main__":
     model = c.fetchone()
     c.execute('SELECT * FROM layers WHERE model_id=?', (model['id'],))
     layers = c.fetchall()
-    for layer in layers:
+    for counter, layer in enumerate(layers):
         # set a layer
-        net_layer = backpropagation.Layer()
+        if layer['layer_index'] == 0:
+            continue
+        net_layer = Layer()
         c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
         neurons = c.fetchall()
-        for neuron in neurons:
-            if layer['layer_index'] > 0:
-                net_neuron = backpropagation.Neuron()
-                # todo implement storing sums and values of neurons and fetching them back
-                net_neuron.setSum([0, 0, 0, 0])
-                net_neuron.setValue([0, 0, 0, 0])
-                net_layer.setNeuron(net_neuron)
-                c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
-                prev_neurons = c.fetchall()
-                for prev_neuron in prev_neurons:
-                    c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?',
-                              (prev_neuron['id'], neuron['id']))
-                    weight = c.fetchone()
-                    net_neuron.setWeights(json.loads(weight['weight']))
+        for neuron_counter, neuron in enumerate(neurons):
+            net_neuron = Neuron()
+            net_neuron.setSum([0]).setValue([0.5])
+            c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
+            prev_neurons = c.fetchall()
+            for prev_neuron in prev_neurons:
+                c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?', (prev_neuron['id'], neuron['id']))
+                weight = c.fetchone()
+                net_neuron.setWeights(json.loads(weight['weight']))
+            net_layer.setNeuron(neuron['neuron_index'], net_neuron)
         net.setLayer(layer['layer_index'], net_layer)
-
+    
     # conn.commit()
     conn.close()
 

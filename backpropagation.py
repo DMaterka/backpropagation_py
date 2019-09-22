@@ -16,22 +16,21 @@ class Neuron:
     set sum
     """
     
-    value = 0
-    sum = 0
-    is_bias = 0
-    weights = None
-    deltaSum = None
-    position = None
-    
     def __init__(self, is_bias=False):
         self.is_bias = is_bias
+        self.value = 0
+        self.sum = 0
+        self.is_bias = 0
+        self.weights = None
+        self.deltaSum = None
+        self.position = None
     
     def setValue(self, value):
         if self.is_bias:
             raise Exception("Bias value or sum cannot be set")
-        self.value = value
+        self.value = np.array(value)
         if debug:
-            print("   I assign a value of " + str(value) + " to the neuron " + str(self))
+            print("   I assign a value of " + str(self.value) + " to the neuron " + str(self))
         return self
     
     def getValue(self):
@@ -42,9 +41,9 @@ class Neuron:
     def setSum(self, sum):
         if self.is_bias:
             raise Exception("Bias value or sum cannot be set")
-        self.sum = sum
+        self.sum = np.array(sum)
         if debug:
-            print("   I assign a sum of " + str(sum) + " to the neuron " + str(self))
+            print("   I assign a sum of " + str(self.sum) + " to the neuron " + str(self))
     
     def getSum(self):
         if self.is_bias:
@@ -69,14 +68,17 @@ class Neuron:
         self.position = position
         return self
 
+
 class Layer:
     """
     Get number of neurons
     set neurons' values
     """
-    neurons = []
-    weights = []
-    bias = None
+
+    def __init__(self):
+        self.neurons = []
+        self.weights = []
+        self.bias = None
     
     def setNeurons(self, sums: list, immutable=0):
         sums = np.array(sums)
@@ -93,8 +95,8 @@ class Layer:
     def getNeurons(self):
         return self.neurons
     
-    def setNeuron(self, neuron: Neuron):
-        self.neurons.append(neuron)
+    def setNeuron(self, index, neuron):
+        self.neurons.insert(index, neuron)
         return self
     
     def getNeuron(self, index: int):
@@ -145,24 +147,24 @@ class Net:
     make a forward and backpropagation
     return layer at any moment
     """
-    dims = 0
-    name = ''
-    weights = {}
-    layers = {}
-    deltaOutputSum = 0
-    error = 0
 
     def __init__(self, name, inputs, results, learning_rate=1):
+        self.layers = []
+        self.error = 0
         self.setName(name)
         self.setResults(results)
         self.learning_rate = learning_rate
+        self.dims = 0
+        self.name = ''
+        self.weights = {}
+        self.deltaOutputSum = 0
         # set input layer
         inputLayer = Layer()
         inputLayer.setNeurons(inputs, 1)
         self.setLayer(0, inputLayer)
         
     def setLayer(self, index, layer):
-        self.layers[index] = layer
+        self.getLayers().insert(index, layer)
         if len(layer.getWeights()) > 0:
             if np.shape(layer.getWeights()) != (len(layer.getNeurons()), len(self.getLayer(index-1).getNeurons())):
                 raise Exception("Bad weights format")
@@ -251,7 +253,7 @@ class Net:
                 if np.ndim(sum) > 1:
                     sum = np.mean(sum, 1)
                 
-                if currentLayer.getBias() != None :
+                if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
                 nextLayer.getNeuron(j).setSum(sum)
@@ -331,6 +333,7 @@ class Net:
         fig.tight_layout()
     
         plt.show()
+        
         
 class ActivationFn:
     @staticmethod
