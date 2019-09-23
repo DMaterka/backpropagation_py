@@ -47,13 +47,14 @@ if __name__ == "__main__":
         neurons = c.fetchall()
         for neuron_counter, neuron in enumerate(neurons):
             net_neuron = Neuron()
-            net_neuron.setSum([0]).setValue([0.5])
+            net_neuron.setSum([0])
+            net_neuron.setValue([0.5])
             c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
             prev_neurons = c.fetchall()
             for prev_neuron in prev_neurons:
                 c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?', (prev_neuron['id'], neuron['id']))
                 weight = c.fetchone()
-                net_neuron.setWeights(json.loads(weight['weight']))
+                net_neuron.setWeights(json.loads(weight['weight']), prev_neuron['neuron_index'])
             net_layer.setNeuron(neuron['neuron_index'], net_neuron)
         net.setLayer(layer['layer_index'], net_layer)
     

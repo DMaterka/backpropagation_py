@@ -21,7 +21,7 @@ class Neuron:
         self.value = 0
         self.sum = 0
         self.is_bias = 0
-        self.weights = None
+        self.weights = []
         self.deltaSum = None
         self.position = None
     
@@ -50,12 +50,15 @@ class Neuron:
             return 1
         return self.sum
     
-    def setWeights(self, weight):
-        self.weights = np.array(weight)
+    def setWeights(self, weight, index=None):
+        if index is not None:
+            self.weights.insert(index, weight)
+        else:
+            self.weights = np.array(weight)
         return self
     
     def getWeights(self):
-        return self.weights
+        return np.array(self.weights)
 
     def setDeltaSum(self, deltasum):
         self.deltaSum = deltasum
@@ -176,6 +179,7 @@ class Net:
     def getLayers(self):
         return self.layers
     
+    # deprecated
     def setWeights(self, weights={}):
         if weights:
             self.weights = np.array(weights, dtype=object)
