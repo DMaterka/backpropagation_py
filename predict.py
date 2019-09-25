@@ -5,6 +5,48 @@ from backpropagation import Layer, Net, Neuron
 import pandas as pd
 import sqlite3
 import json
+import os
+import dotenv
+
+
+def predict(net: Net):
+    inputfile = net.getName()
+    # get model from database
+    dotenv.load_dotenv('.env')
+    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM models WHERE name=?', (inputfile,))
+    model = c.fetchone()
+    c.execute('SELECT * FROM layers WHERE model_id=?', (model['id'],))
+    layers = c.fetchall()
+    for counter, layer in enumerate(layers):
+        # set a layer
+        if layer['layer_index'] == 0:
+            continue
+        net_layer = Layer()
+        c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
+        neurons = c.fetchall()
+        for neuron_counter, neuron in enumerate(neurons):
+            net_neuron = Neuron()
+            net_neuron.setSum([0])
+            net_neuron.setValue([0.5])
+            c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
+            prev_neurons = c.fetchall()
+            for prev_neuron in prev_neurons:
+                c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?',
+                          (prev_neuron['id'], neuron['id']))
+                weight = c.fetchone()
+                net_neuron.setWeights(json.loads(weight['weight']), prev_neuron['neuron_index'])
+            net_layer.setNeuron(neuron['neuron_index'], net_neuron)
+        net.setLayer(layer['layer_index'], net_layer)
+    
+    conn.close()
+    
+    # do the actual prediction
+    net.forwardPropagate()
+    
+    return net
 
 if __name__ == "__main__":
     inputfile = ''
@@ -27,41 +69,7 @@ if __name__ == "__main__":
             outputfile = arg
             
     df = pd.read_csv(inputfile)
-  
+
     net = Net(inputfile, [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
-    
-    # get model from database
-    conn = sqlite3.connect('data/backprop.db')
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    c.execute('SELECT * FROM models WHERE name=?', (inputfile,))
-    model = c.fetchone()
-    c.execute('SELECT * FROM layers WHERE model_id=?', (model['id'],))
-    layers = c.fetchall()
-    for counter, layer in enumerate(layers):
-        # set a layer
-        if layer['layer_index'] == 0:
-            continue
-        net_layer = Layer()
-        c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
-        neurons = c.fetchall()
-        for neuron_counter, neuron in enumerate(neurons):
-            net_neuron = Neuron()
-            net_neuron.setSum([0])
-            net_neuron.setValue([0.5])
-            c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
-            prev_neurons = c.fetchall()
-            for prev_neuron in prev_neurons:
-                c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?', (prev_neuron['id'], neuron['id']))
-                weight = c.fetchone()
-                net_neuron.setWeights(json.loads(weight['weight']), prev_neuron['neuron_index'])
-            net_layer.setNeuron(neuron['neuron_index'], net_neuron)
-        net.setLayer(layer['layer_index'], net_layer)
-    
-    # conn.commit()
-    conn.close()
-
-    # do the actual prediction
-    net.forwardPropagate()
-
-    print("The result is ", net.getLayer(len(net.getLayers()) - 1).getValues())
+    results = predict(net)
+    print("The result is ", results.getLayer(len(results.getLayers()) - 1).getValues())

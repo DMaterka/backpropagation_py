@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup (
+setup(
 	  name='Backpropagation',
 	  version='0.1',
 	  packages=find_packages(),
@@ -19,6 +19,4 @@ setup (
 	  long_description='Long description of the package',
 
 	  # could also include long_description, download_url, classifiers, etc.
-
-  
 	  )

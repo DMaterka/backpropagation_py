@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sqlite3
+import os
+import dotenv
 
 
 def createSchema(conn):
@@ -12,6 +14,7 @@ def createSchema(conn):
 	conn.commit()
 
 
-conn = sqlite3.connect('data/backprop.db')
+dotenv.load_dotenv('.env')
+conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
 createSchema(conn)
 conn.close()
