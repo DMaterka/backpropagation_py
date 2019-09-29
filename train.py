@@ -7,6 +7,8 @@ import numpy as np
 import ast
 import sqlite3
 import json
+import dotenv
+import os
 
 
 def train(net: backpropagation.Net, structure, iterations):
@@ -31,8 +33,12 @@ def train(net: backpropagation.Net, structure, iterations):
         # net.print_network()
         net.backPropagate()
     
-    # save model to database
-    conn = sqlite3.connect('data/backprop.db')
+    if os.environ['testing'] == 1:
+        dotenv.load_dotenv('.env.testing')
+    else:
+        dotenv.load_dotenv('.env')
+        
+    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (inputfile,))
@@ -46,7 +52,13 @@ def train(net: backpropagation.Net, structure, iterations):
             c.execute('INSERT INTO layers (layer_index, model_id) VALUES (?, ?)', (layer_index, modelid))
             layerid = c.lastrowid
             for neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
-                c.execute('INSERT INTO neurons (neuron_index, layer_id) VALUES (?, ?)', (neuron_index, layerid))
+                sums = net.getLayer(layer_index).getNeuron(neuron_index).getSum()
+                values = net.getLayer(layer_index).getNeuron(neuron_index).getValue()
+                c.execute(
+                    'INSERT INTO neurons (neuron_index, layer_id, sum, value) VALUES (?, ?, ?, ?)', (
+                        neuron_index, layerid, json.dumps(sums.tolist()), json.dumps(values.tolist())
+                    )
+                )
                 neuron_id = c.lastrowid
                 if layer_index > 0:
                     for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index - 1).getNeurons())):

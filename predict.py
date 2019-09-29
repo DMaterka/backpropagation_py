@@ -11,8 +11,12 @@ import dotenv
 
 def predict(net: Net):
     inputfile = net.getName()
-    # get model from database
-    dotenv.load_dotenv('.env')
+
+    if os.environ['testing'] == 1:
+        dotenv.load_dotenv('.env.testing')
+    else:
+        dotenv.load_dotenv('.env')
+        
     conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -29,8 +33,8 @@ def predict(net: Net):
         neurons = c.fetchall()
         for neuron_counter, neuron in enumerate(neurons):
             net_neuron = Neuron()
-            net_neuron.setSum([0])
-            net_neuron.setValue([0.5])
+            net_neuron.setSum(json.loads(neuron['sum']))
+            net_neuron.setValue(json.loads(neuron['value']))
             c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
             prev_neurons = c.fetchall()
             for prev_neuron in prev_neurons:
