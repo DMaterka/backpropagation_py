@@ -2,7 +2,6 @@
 import sys
 import getopt
 from backpropagation import Layer, Net, Neuron
-import pandas as pd
 import sqlite3
 import json
 import os
@@ -11,8 +10,7 @@ import dotenv
 
 def predict(net: Net):
     inputfile = net.getName()
-
-    if os.environ['testing'] == 1:
+    if 'testing' in os.environ and os.environ['testing'] == 1:
         dotenv.load_dotenv('.env.testing')
     else:
         dotenv.load_dotenv('.env')
@@ -52,6 +50,7 @@ def predict(net: Net):
     
     return net
 
+
 if __name__ == "__main__":
     inputfile = ''
     outputfile = ''
@@ -72,8 +71,6 @@ if __name__ == "__main__":
         elif opt in ("-o", "--ofile"):
             outputfile = arg
             
-    df = pd.read_csv(inputfile)
-
-    net = Net(inputfile, [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
+    net = Net(inputfile, int(learning_rate))
     results = predict(net)
     print("The result is ", results.getLayer(len(results.getLayers()) - 1).getValues())

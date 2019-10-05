@@ -2,7 +2,6 @@
 import sys
 import getopt
 import backpropagation
-import pandas as pd
 import numpy as np
 import ast
 import sqlite3
@@ -33,7 +32,7 @@ def train(net: backpropagation.Net, structure, iterations):
         # net.print_network()
         net.backPropagate()
     
-    if os.environ['testing'] == 1:
+    if 'testing' in os.environ:
         dotenv.load_dotenv('.env.testing')
     else:
         dotenv.load_dotenv('.env')
@@ -120,11 +119,8 @@ if __name__ == "__main__":
             iterations = arg
         elif opt in ("-s", "--struc"):
             structure = arg
-            
-    df = pd.read_csv(inputfile)
     
-    net = backpropagation.Net(inputfile, [df["col1"], df["col2"]], [df["exp_result"]], int(learning_rate))
-    
+    net = backpropagation.Net(inputfile, int(learning_rate))
     net = train(net, structure, iterations)
     print("result is", net.getLayer(len(net.getLayers()) - 1).getValues())
     print("error is", np.average(np.abs(net.error)))

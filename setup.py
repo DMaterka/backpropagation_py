@@ -16,7 +16,7 @@ setup(
 	  #summary = 'Just another Python package for the cheese shop',
 	  url='',
 	  license='',
-	  long_description='Long description of the package',
+	  long_description='Backpropagation example',
 
 	  # could also include long_description, download_url, classifiers, etc.
-	  )
+)
