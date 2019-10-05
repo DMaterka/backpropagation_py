@@ -5,6 +5,7 @@ import numpy as np
 import copy as cp
 import matplotlib.pyplot as plt
 import numpy.matlib
+import pandas as pd
 
 debug = 0
 
@@ -83,7 +84,7 @@ class Layer:
         self.weights = []
         self.bias = None
     
-    def setNeurons(self, sums: list, immutable=0):
+    def setNeurons(self, sums, immutable=0):
         sums = np.array(sums)
         self.neurons = [Neuron() for i in range(0, len(sums))]
         for i in range(0, len(sums)):
@@ -149,13 +150,15 @@ class Net:
     """ contains layers
     make a forward and backpropagation
     return layer at any moment
+    :var name is well formatted csv file, it contains data in columns, where the last column is expected result
     """
 
-    def __init__(self, name, inputs, results, learning_rate=1):
+    def __init__(self, name, learning_rate=1):
+        df = pd.read_csv(name)
         self.layers = []
         self.error = 0
         self.setName(name)
-        self.setResults(results)
+        self.setResults(df.iloc[:, -1:].values.T)
         self.learning_rate = learning_rate
         self.dims = 0
         self.name = ''
@@ -163,7 +166,7 @@ class Net:
         self.deltaOutputSum = 0
         # set input layer
         inputLayer = Layer()
-        inputLayer.setNeurons(inputs, 1)
+        inputLayer.setNeurons(df.iloc[:, :-1].values.T, 1)
         self.setLayer(0, inputLayer)
         
     def setLayer(self, index, layer):
