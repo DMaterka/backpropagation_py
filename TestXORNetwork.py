@@ -8,13 +8,8 @@ class TestXORNetwork(unittest.TestCase):
     (in contrary to single rows and multidimensional arrays)"""
 
     def setUp(self):
-        """Set up testing objects"""
-        inputs = [[0.99, 0.99, 0.01, 0.01], [0.99, 0.01, 0.99, 0.01]]
-        results = [0.01, 0.99, 0.99, 0.01]
-
         # train the network
-        self.net = backpropagation.Net("1dnet", inputs, results)
-
+        self.net = backpropagation.Net("xor.csv")
         # set hidden layer
         hiddenLayer = backpropagation.Layer()
         hiddenLayer.setNeurons([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])

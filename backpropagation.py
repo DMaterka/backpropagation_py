@@ -153,8 +153,8 @@ class Net:
     :var name is well formatted csv file, it contains data in columns, where the last column is expected result
     """
 
-    def __init__(self, name, learning_rate=1):
-        df = pd.read_csv(name)
+    def __init__(self, name: str, learning_rate=1):
+        df = pd.read_csv('data/' + name)
         self.layers = []
         self.error = 0
         self.setName(name)
