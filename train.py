@@ -23,11 +23,12 @@ def train(net: backpropagation.Net, structure, iterations):
         layer = backpropagation.Layer()
         layer.setNeurons(np.zeros([structure[index], 1]))
         layer.setWeights(np.random.rand(structure[index], len(net.getLayer(index).getNeurons())))
+        #layer.setBias(np.random.rand(len(net.getLayer(index).getNeurons())))
         net.setLayer(index + 1, layer)
     
     for i in range(0, int(iterations)):
         # net.getLayer(0).setNeurons(np.array([[0.99, 0.99]]), 1)
-        # net.setResults(np.array([[0.01]]))
+        # net.setExpectedResults(np.array([[0.01]]))
         net.forwardPropagate()
         # net.print_network()
         net.backPropagate()

@@ -47,7 +47,6 @@ def predict(net: Net):
     
     # do the actual prediction
     net.forwardPropagate()
-    
     return net
 
 

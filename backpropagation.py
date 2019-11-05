@@ -158,7 +158,7 @@ class Net:
         self.layers = []
         self.error = 0
         self.setName(name)
-        self.setResults(df.iloc[:, -1:].values.T)
+        self.setExpectedResults(df.iloc[:, -1:].values.T)
         self.learning_rate = learning_rate
         self.dims = 0
         self.name = ''
@@ -222,13 +222,13 @@ class Net:
         
     def getInputs(self):
         return self.getLayer(0).getValues()
-
-    def setResults(self, results):
-        self.results = np.array(results)
+    
+    def setExpectedResults(self, expected_results):
+        self.expected_results = np.array(expected_results)
         return self
         
-    def getResults(self):
-        return self.results
+    def getExpectedResults(self):
+        return self.expected_results
     
     def setDimensionNumber(self, dims):
         self.dims = dims
@@ -244,7 +244,7 @@ class Net:
 
     def forwardPropagate(self):
         """ calculate network values from weights and activation function"""
-        if np.size(self.results) != np.size(self.getLayer(0).getNeuron(0).getValue()):
+        if np.size(self.expected_results) != np.size(self.getLayer(0).getNeuron(0).getValue()):
             raise Exception('Results size must match input neuron size!')
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
@@ -265,9 +265,9 @@ class Net:
                     sum += biasWeightsSum
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
-        self.error = self.results - self.getLayer(i+1).getValues()
+        self.error = self.expected_results - self.getLayer(i+1).getValues()
         #error must have the dimensions 'flat'
-        if np.shape(self.error) != np.shape(self.results):
+        if np.shape(self.error) != np.shape(self.expected_results):
             pass
             # raise Exception('Error must have the same shape as the results')
 
@@ -301,10 +301,11 @@ class Net:
                 # or it should be do along with the weights of the neurons
                 if self.getLayer(j-1).getBias():
                     bias = self.getLayer(j-1).getBias()
-                    biasValue = bias.weights[ds] + (
-                                self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(
-                            j).getNeuron(ds).getValue())
-                    np.append(bias.weights, biasValue)
+                    # biasValue = bias.weights[ds] + (
+                    #             self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() *
+                    #             self.getLayer(j).getNeuron(ds).getValue()
+                    # )
+                    # np.append(bias.weights, biasValue)
                     
     def print_network(self):
         fig, axs = plt.subplots()
@@ -340,7 +341,10 @@ class Net:
         fig.tight_layout()
     
         plt.show()
-        
+
+    def get_results(self):
+        return self.getLayer(len(self.getLayers()) - 1).getValues().all()
+    
         
 class ActivationFn:
     @staticmethod
