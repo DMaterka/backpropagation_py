@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-import backpropagation
+from src import backpropagation
 import numpy as np
 import ast
 import sqlite3
@@ -123,5 +123,8 @@ if __name__ == "__main__":
     
     net = backpropagation.Net(inputfile, int(learning_rate))
     net = train(net, structure, iterations)
+    
+    net.print_network()
+    
     print("result is", net.getLayer(len(net.getLayers()) - 1).getValues())
     print("error is", np.average(np.abs(net.error)))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-from backpropagation import Layer, Net, Neuron
+from src.backpropagation import Layer, Net, Neuron
 import sqlite3
 import json
 import os
