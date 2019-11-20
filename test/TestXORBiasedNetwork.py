@@ -1,5 +1,5 @@
 import unittest
-import backpropagation
+from src import backpropagation
 import numpy as np
 
 

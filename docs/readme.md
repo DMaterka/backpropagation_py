@@ -53,6 +53,12 @@ Example use:
 python train.py -i xor.csv -n 1000
 ```
 
+Now the network is trained and we can predict it with the same or another data with the same structure
+
+```
+python predict.py -i xor.csv
+```
+
 ## Features
 
 * Demonstrate backpropagation algorithm in action
