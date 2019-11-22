@@ -158,10 +158,8 @@ class Net:
         self.layers = []
         self.error = 0
         self.setName(name)
-        self.setExpectedResults(df.iloc[:, -1:].values.T)
         self.learning_rate = learning_rate
         self.dims = 0
-        self.name = ''
         self.weights = {}
         self.deltaOutputSum = 0
         # set input layer
@@ -244,8 +242,6 @@ class Net:
 
     def forwardPropagate(self):
         """ calculate network values from weights and activation function"""
-        if np.size(self.expected_results) != np.size(self.getLayer(0).getNeuron(0).getValue()):
-            raise Exception('Results size must match input neuron size!')
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
