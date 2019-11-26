@@ -8,6 +8,7 @@ import sqlite3
 import json
 import os
 import re
+import matplotlib.pyplot as plt
 
 
 def train1d(net: backpropagation.Net, structure, iterations):
@@ -17,31 +18,63 @@ def train1d(net: backpropagation.Net, structure, iterations):
     if structure != []:
         structure = ast.literal_eval(structure)
     else:
-        structure = [3, 2]
+        structure = [6, 1]
     
     for index in range(0, len(structure)):
         layer = backpropagation.Layer()
         layer.setNeurons(np.zeros([structure[index], 1]))
-        layer.setWeights(np.random.rand(structure[index], len(net.getLayer(index).getNeurons())))
-        #layer.setBias(np.random.rand(len(net.getLayer(index).getNeurons())))
+        layer.setWeights(np.random.random_integers(1, 99, [structure[index], len(net.getLayer(index).getNeurons())])/100)
+        layer.setBias(np.random.rand(len(net.getLayer(index).getNeurons())))
         net.setLayer(index + 1, layer)
     
-    for i in range(0, int(iterations)):
-        net.getLayer(0).setNeurons(np.array([[0.99], [0.99]]), 1)
-        net.setExpectedResults([[0.99], [0.01]])
-        net.forwardPropagate()
-        # net.print_network()
-        net.backPropagate()
+    curve = []
+    mini_batch = []
+    mini_batch_size = 12
+    for i in range(0, int(iterations) * mini_batch_size):
+        inp1 = np.random.randint(1, 99) / 100
+        inp2 = np.random.randint(1, 99) / 100
+        result = np.bitwise_xor(round(inp1), round(inp2))
+        
+        if result == 0: result += 0.01
+        if result == 1: result -= 0.01
+        mini_batch.insert(i, np.array([[inp1], [inp2], [result]]))
+    i = 0
+    while i < (int(iterations)/mini_batch_size):
+        for i in range(0, 1):
+            mini_batch_inputs = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][0:2]
+            mini_batch_results = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][2]
+            net.getLayer(0).setNeurons(mini_batch_inputs, 1)
+            net.setExpectedResults(np.array([mini_batch_results]))
+            net.forwardPropagate()
+            if np.mean(abs(net.error)) < 0.1:
+                continue
+            net.backPropagate()
+            # show batch error instead
+            curve.append(np.mean(abs(net.error)))
+            i += 1
+            
+    # print learning curve
+    plt.plot(range(0, i), curve)
+    plt.tight_layout()
+    plt.show()
     
-    for i in range(0, int(iterations)):
-        net.getLayer(0).setNeurons(np.array([[0.01], [0.99]]), 1)
-        net.setExpectedResults([[0.01], [0.99]])
-        net.forwardPropagate()
-        # net.print_network()
-        net.backPropagate()
+    net.getLayer(0).setNeurons([[0.01], [0.01]], 1)
+    net.forwardPropagate()
+    print("The result is ", net.getLayer(len(net.getLayers()) - 1).getValues())
+    
+    net.getLayer(0).setNeurons([[0.99], [0.01]], 1)
+    net.forwardPropagate()
+    print("The result is ", net.getLayer(len(net.getLayers()) - 1).getValues())
+    
+    net.getLayer(0).setNeurons([[0.01], [0.99]], 1)
+    net.forwardPropagate()
+    print("The result is ", net.getLayer(len(net.getLayers()) - 1).getValues())
+    
+    net.getLayer(0).setNeurons([[0.99], [0.99]], 1)
+    net.forwardPropagate()
+    print("The result is ", net.getLayer(len(net.getLayers()) - 1).getValues())
     
     dbname = re.sub("\..*", "", inputfile) + '.db'
-        
     conn = sqlite3.connect('data/' + dbname)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -125,11 +158,11 @@ if __name__ == "__main__":
             structure = arg
         elif opt in ("-r", "--results"):
             results = arg
-        
+    
     net = backpropagation.Net(inputfile, int(learning_rate))
     
     dbname = re.sub("\..*", "", inputfile) + '.db'
-
+    
     if not os.path.isfile('data/' + dbname):
         db_create.createSchema(dbname)
     
@@ -139,3 +172,4 @@ if __name__ == "__main__":
     
     print("result is", net.getLayer(len(net.getLayers()) - 1).getValues())
     print("error is", net.error)
+    print("expected result is", net.getExpectedResults())

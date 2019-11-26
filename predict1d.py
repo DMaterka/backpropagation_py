@@ -35,7 +35,7 @@ def predict1d(net: Net):
                 c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?',
                           (prev_neuron['id'], neuron['id']))
                 weight = c.fetchone()
-                net_neuron.setWeights(json.loads(weight['weight']), prev_neuron['neuron_index'])
+                net_neuron.setWeights(weight['weight'], prev_neuron['neuron_index'])
             net_layer.setNeuron(neuron['neuron_index'], net_neuron)
         net.setLayer(layer['layer_index'], net_layer)
     
@@ -74,5 +74,5 @@ if __name__ == "__main__":
         raise Exception('No given database: ' + dbname)
     
     results = predict1d(net)
-    
+    net.print_network()
     print("The result is ", results.getLayer(len(results.getLayers()) - 1).getValues())
