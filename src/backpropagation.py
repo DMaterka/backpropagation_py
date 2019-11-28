@@ -125,8 +125,6 @@ class Layer:
         for i in range(0, len(self.neurons)):
             values.append(self.neurons[i].getValue())
         values = np.array(values)
-        if np.ndim(values) == 1:
-            values = np.expand_dims(values, 1)
         return values
     
     def getSums(self):
@@ -156,7 +154,7 @@ class Net:
     def __init__(self, name: str, learning_rate=0.1):
         df = pd.read_csv('data/' + name)
         self.layers = []
-        self.error = 0.5
+        self.error = 0
         self.setName(name)
         self.learning_rate = learning_rate
         self.dims = 0
@@ -255,8 +253,6 @@ class Net:
                 values = np.reshape(values, [len(currentLayer.getNeurons()), len(self.getLayer(i).getNeuron(0).getValue())])
                 
                 sum = np.dot(weights.T, values)
-                if np.ndim(sum) > 1:
-                    sum = np.mean(sum, 1)
                 
                 if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
@@ -266,14 +262,15 @@ class Net:
 
         if self.expected_results is not None:
             current_error = self.expected_results - self.getLayer(i + 1).getValues()
-            self.error = self.expected_results - self.getLayer(i + 1).getValues()
+            self.error = np.mean(current_error)
         
     def backPropagate(self):
+        self.forwardPropagate()
         oldSelf = cp.deepcopy(self)
         for j in range(len(self.getWeights()), 0, -1):
             for ds in range(0, len(self.getLayer(j).getNeurons())):
                 if j == len(self.getWeights()):
-                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * self.error[ds]
+                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * self.error
                     self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
                 else:
                     deltaSum = 0
@@ -284,7 +281,7 @@ class Net:
                 self.getLayer(j).getNeuron(ds).setDeltaSum(np.mean(deltaSum))
                 deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() / self.getLayer(j - 1).getValues()
                 deltaWShape = np.shape(deltaWeights)
-                # deltaWeights = np.matlib.repmat(np.mean(deltaWeights), deltaWShape[0], deltaWShape[1])
+                deltaWeights = np.matlib.repmat(np.mean(deltaWeights), deltaWShape[0], deltaWShape[1])
                 weights = self.getLayer(j).getNeuron(ds).getWeights()
                 rows_number = np.shape(self.getInputs())[1]
                 
@@ -293,8 +290,11 @@ class Net:
                         np.matlib.repmat(self.getLayer(j).getNeuron(ds).getWeights(), rows_number, 1).T
                     )
                     
-                newWeights = self.getLayer(j).getNeuron(ds).getWeights() + (self.learning_rate * deltaWeights)
-                
+                newWeights = self.learning_rate * (self.getLayer(j).getNeuron(ds).getWeights() + deltaWeights)
+                if np.ndim(newWeights) == 2:
+                    newWeights = np.mean(newWeights, 1)
+                # if np.ndim(newWeights) == 2:
+                #     test = ''
                 self.getLayer(j).getNeuron(ds).setWeights(newWeights)
                 #update bias weights
                 #it seems that possibly bias doesn't have to be updated

@@ -18,13 +18,14 @@ def train1d(net: backpropagation.Net, structure, iterations):
     if structure != []:
         structure = ast.literal_eval(structure)
     else:
-        structure = [6, 1]
+        structure = [3, 1]
     
     for index in range(0, len(structure)):
         layer = backpropagation.Layer()
         layer.setNeurons(np.zeros([structure[index], 1]))
         layer.setWeights(np.random.random_integers(1, 99, [structure[index], len(net.getLayer(index).getNeurons())])/100)
-        layer.setBias(np.random.rand(len(net.getLayer(index).getNeurons())))
+        if index != len(structure):
+            layer.setBias(np.random.rand(len(net.getLayer(index).getNeurons())))
         net.setLayer(index + 1, layer)
     
     curve = []
@@ -39,22 +40,21 @@ def train1d(net: backpropagation.Net, structure, iterations):
         if result == 1: result -= 0.01
         mini_batch.insert(i, np.array([[inp1], [inp2], [result]]))
     i = 0
-    while i < (int(iterations)/mini_batch_size):
-        for i in range(0, 1):
-            mini_batch_inputs = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][0:2]
-            mini_batch_results = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][2]
-            net.getLayer(0).setNeurons(mini_batch_inputs, 1)
-            net.setExpectedResults(np.array([mini_batch_results]))
-            net.forwardPropagate()
-            if np.mean(abs(net.error)) < 0.1:
-                continue
-            net.backPropagate()
-            # show batch error instead
-            curve.append(np.mean(abs(net.error)))
-            i += 1
+    j = 0
+    while j < int(iterations)*mini_batch_size:
+        print("epoch " + str(j) + " out of " + str(int(iterations) * mini_batch_size), end='\r')
+        mini_batch_inputs = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][0:2]
+        mini_batch_results = np.array(mini_batch[i*mini_batch_size:i*mini_batch_size+mini_batch_size]).T[0][2]
+        net.getLayer(0).setNeurons(mini_batch_inputs, 1)
+        net.setExpectedResults(np.array([mini_batch_results]))
+        net.forwardPropagate()
+        net.backPropagate()
+        # show batch error instead
+        curve.append(np.mean(abs(net.error)))
+        j = j + 1
             
     # print learning curve
-    plt.plot(range(0, i), curve)
+    plt.plot(range(0, j), curve)
     plt.tight_layout()
     plt.show()
     
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         elif opt in ("-r", "--results"):
             results = arg
     
-    net = backpropagation.Net(inputfile, int(learning_rate))
+    net = backpropagation.Net(inputfile, learning_rate)
     
     dbname = re.sub("\..*", "", inputfile) + '.db'
     
