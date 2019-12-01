@@ -9,7 +9,7 @@ class TestXORNetwork(unittest.TestCase):
 
     def setUp(self):
         # train the network
-        self.net = backpropagation.Net("xor.csv")
+        self.net = backpropagation.Net("xor.csv", 1)
         # set hidden layer
         hiddenLayer = backpropagation.Layer()
         hiddenLayer.setNeurons([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
@@ -21,6 +21,7 @@ class TestXORNetwork(unittest.TestCase):
         outputLayer.setNeurons([[0, 0, 0, 0]])
         self.net.setLayer(2, outputLayer)
         self.net.getLayer(2).setWeights([[.3, .5, .9]])
+        self.net.setExpectedResults([[0.1, 0.99, 0.01, 0.99]])
 
     def test_weights(self):
         """Testing set/get method"""

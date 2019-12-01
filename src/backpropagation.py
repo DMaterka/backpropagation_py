@@ -83,6 +83,7 @@ class Layer:
         self.neurons = []
         self.weights = []
         self.bias = None
+        self.deltaSums = []
     
     def setNeurons(self, sums, immutable=0):
         sums = np.array(sums)
@@ -95,7 +96,7 @@ class Layer:
                 self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
             else:
                 self.neurons[i].setValue(sums[i])
-    
+        return self
     def getNeurons(self):
         return self.neurons
     
@@ -125,8 +126,6 @@ class Layer:
         for i in range(0, len(self.neurons)):
             values.append(self.neurons[i].getValue())
         values = np.array(values)
-        if np.ndim(values) == 1:
-            values = np.expand_dims(values, 1)
         return values
     
     def getSums(self):
@@ -144,7 +143,17 @@ class Layer:
 
     def getWeights(self):
         return self.weights
-
+    
+    def setDeltaSums(self, deltasums):
+        self.deltaSums = deltasums
+        return self
+    
+    def getDeltaSums(self) -> numpy.ndarray:
+        """ Get values of the layer's neurons"""
+        deltasums = []
+        for i in range(0, len(self.neurons)):
+            deltasums.append(self.neurons[i].getDeltaSum())
+        return np.array(deltasums)
 
 class Net:
     """ contains layers
@@ -153,20 +162,18 @@ class Net:
     :var name is well formatted csv file, it contains data in columns, where the last column is expected result
     """
 
-    def __init__(self, name: str, learning_rate=1):
+    def __init__(self, name: str, learning_rate=0.1):
         df = pd.read_csv('data/' + name)
         self.layers = []
-        self.error = 0
+        self.total_error = 0
         self.setName(name)
-        self.setExpectedResults(df.iloc[:, -1:].values.T)
         self.learning_rate = learning_rate
         self.dims = 0
-        self.name = ''
         self.weights = {}
         self.deltaOutputSum = 0
         # set input layer
         inputLayer = Layer()
-        inputLayer.setNeurons(df.iloc[:, :-1].values.T, 1)
+        inputLayer.setNeurons(df.iloc[:, :].values.T, 1)
         self.setLayer(0, inputLayer)
         
     def setLayer(self, index, layer):
@@ -244,61 +251,49 @@ class Net:
 
     def forwardPropagate(self):
         """ calculate network values from weights and activation function"""
-        if np.size(self.expected_results) != np.size(self.getLayer(0).getNeuron(0).getValue()):
-            raise Exception('Results size must match input neuron size!')
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
-            if debug:
-                print("I set the " + str(i) + " layer: " + str(nextLayer) + " of network " + str(self))
             """ produce neurons' sums and values """
             for j in range(0, len(nextLayer.getNeurons())):
-                weights = nextLayer.getNeuron(j).getWeights()
+                sum = 0
+                weights = currentLayer.getNeuron(j).getWeights()
                 values = currentLayer.getValues()
                 
-                sum = np.dot(weights.T, values)
-                if np.ndim(sum) > 1:
-                    sum = np.mean(sum, 1)
+                # values = np.reshape(values, [len(currentLayer.getNeurons()), len(self.getLayer(i).getNeuron(0).getValue())])
+
+                sum += np.dot(weights.T, values)
                 
                 if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
-        self.error = self.expected_results - self.getLayer(i+1).getValues()
-        #error must have the dimensions 'flat'
-        if np.shape(self.error) != np.shape(self.expected_results):
-            pass
-            # raise Exception('Error must have the same shape as the results')
 
+        if self.expected_results is not None:
+            self.total_error = (np.sum(0.5 * ((self.expected_results - self.getLayer(i + 1).getValues()) ** 2)))
+
+        
     def backPropagate(self):
+        self.forwardPropagate()
         oldSelf = cp.deepcopy(self)
-        for j in range(len(self.getWeights()), 0, -1):
-            for ds in range(0, len(self.getLayer(j).getNeurons())):
-                if j == len(self.getWeights()):
-                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * self.error[ds]
-                    self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
+        for j in range(len(self.getLayers()) - 1, 1, -1):
+            for ds in range(0, len(self.getLayer(j-1).getNeurons())):
+                if j == len(self.getLayers()) - 1:
+                    partial_error = self.getLayer(j).getNeuron(ds).getValue() - self.getExpectedResults()[ds]
+                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
+                    deltaSum = d_val * partial_error * self.getLayer(j-1).getNeuron(ds).getValue()
                 else:
-                    deltaSum = 0
-                    for neur in range(0, len(self.getLayer(j+1).getNeurons())):
-                        deltaSum += self.getLayer(j+1).getNeuron(neur).getDeltaSum() * \
-                                    oldSelf.getLayer(j+1).getNeuron(neur).getWeights()[ds]
-                    self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
-                deltaWeights = self.getLayer(j).getNeuron(ds).getDeltaSum() * self.getLayer(j - 1).getValues()
-                weights = self.getLayer(j).getNeuron(ds).getWeights()
-                rows_number = np.shape(self.getInputs())[1]
+                    upper_layer_delta_sums = self.getLayer(j).getDeltaSums()
+                    current_neuron_values = self.getLayer(j).getValues()
+                    t = upper_layer_delta_sums.T / current_neuron_values.T
+                    w = oldSelf.getLayer(j).getNeuron(ds).getWeights()
+                    deltaSum = np.sum(t[0] * w)
                 
-                if np.shape(weights) != np.shape(deltaWeights):
-                    self.getLayer(j).getNeuron(ds).setWeights(
-                        np.matlib.repmat(self.getLayer(j).getNeuron(ds).getWeights(), rows_number, 1).T
-                    )
-                    
-                newWeights = self.getLayer(j).getNeuron(ds).getWeights() + (self.learning_rate * deltaWeights)
-                
-                self.getLayer(j).getNeuron(ds).setWeights(newWeights)
-                #update bias weights
-                #it seems that possibly bias doesn't have to be updated
-                # or it should be do along with the weights of the neurons
+                new_hidden_weight = self.getLayer(j-1).getNeuron(ds).getWeights() - (self.learning_rate * deltaSum)
+                self.getLayer(j-1).getNeuron(ds).setDeltaSum(deltaSum)
+                self.getLayer(j-1).getNeuron(ds).setWeights(new_hidden_weight)
+                        
                 if self.getLayer(j-1).getBias():
                     bias = self.getLayer(j-1).getBias()
                     # biasValue = bias.weights[ds] + (
@@ -355,3 +350,19 @@ class ActivationFn:
     @staticmethod
     def sigmoidprime(x):
         return (__class__.sigmoid(x)) * (1 - __class__.sigmoid(x))
+
+    @staticmethod
+    def tanh(z):
+        return np.tanh(z)
+
+    @staticmethod
+    def relu(z):
+        if z > 0:
+            return input
+        return 0
+
+    @staticmethod
+    def relu_prime(z):
+        if z > 0:
+            return 1
+        return 0
