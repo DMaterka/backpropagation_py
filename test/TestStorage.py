@@ -1,8 +1,7 @@
 import unittest
-from src import backpropagation
+from src import backpropagation, db_create
 import train
 import predict
-import install
 import sqlite3
 import os
 import dotenv
