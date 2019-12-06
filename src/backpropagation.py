@@ -178,9 +178,9 @@ class Net:
         
     def setLayer(self, index, layer):
         self.getLayers().insert(index, layer)
-        if len(layer.getWeights()) > 0:
-            if np.shape(layer.getWeights()) != (len(layer.getNeurons()), len(self.getLayer(index-1).getNeurons())):
-                raise Exception("Bad weights format")
+        # if len(layer.getWeights()) > 0:
+            # if np.shape(layer.getWeights()) != (len(layer.getNeurons()), len(self.getLayer(index-1).getNeurons())):
+            #     raise Exception("Bad weights format")
         return self
 
     def getLayer(self, index):
@@ -254,15 +254,16 @@ class Net:
         for i in range(0, len(self.getLayers()) - 1):
             currentLayer = self.getLayer(i)
             nextLayer = self.getLayer(i+1)
+            
             """ produce neurons' sums and values """
             for j in range(0, len(nextLayer.getNeurons())):
                 sum = 0
-                weights = currentLayer.getNeuron(j).getWeights()
+                weights = nextLayer.getNeuron(j).getWeights()
                 values = currentLayer.getValues()
                 
                 # values = np.reshape(values, [len(currentLayer.getNeurons()), len(self.getLayer(i).getNeuron(0).getValue())])
 
-                sum += np.dot(weights.T, values)
+                sum += np.dot(weights, values)
                 
                 if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
@@ -277,24 +278,26 @@ class Net:
     def backPropagate(self):
         self.forwardPropagate()
         oldSelf = cp.deepcopy(self)
-        for j in range(len(self.getLayers()) - 1, 1, -1):
-            for ds in range(0, len(self.getLayer(j-1).getNeurons())):
+        partial_error = self.getLayer(len(self.getLayers()) - 1).getValues() - self.getExpectedResults()
+        
+        for j in range(len(self.getLayers()) - 1, 0, -1):
+            for ds in range(0, len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:
-                    partial_error = self.getLayer(j).getNeuron(ds).getValue() - self.getExpectedResults()[ds]
                     d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
-                    deltaSum = d_val * partial_error * self.getLayer(j-1).getNeuron(ds).getValue()
+                    deltaSum = d_val * partial_error[ds] * self.getLayer(j-1).getNeuron(ds).getValue()
                 else:
-                    upper_layer_delta_sums = self.getLayer(j).getDeltaSums()
+                    upper_layer_delta_sums = self.getLayer(j+1).getDeltaSums()
                     current_neuron_values = self.getLayer(j).getValues()
                     t = upper_layer_delta_sums.T / current_neuron_values.T
-                    w = oldSelf.getLayer(j).getNeuron(ds).getWeights()
-                    deltaSum = np.sum(t[0] * w)
+                    w = oldSelf.getLayer(j+1).getNeuron(ds).getWeights()
+                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
+                    deltaSum = np.sum(t[0] * w) * d_val * self.getLayer(j).getNeuron(ds).getWeights()[ds]
                 
-                new_hidden_weight = self.getLayer(j-1).getNeuron(ds).getWeights() - (self.learning_rate * deltaSum)
-                self.getLayer(j-1).getNeuron(ds).setDeltaSum(deltaSum)
-                self.getLayer(j-1).getNeuron(ds).setWeights(new_hidden_weight)
+                new_hidden_weight = self.getLayer(j).getNeuron(ds).getWeights() - (self.learning_rate * deltaSum)
+                self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
+                self.getLayer(j).getNeuron(ds).setWeights(new_hidden_weight)
                         
-                if self.getLayer(j-1).getBias():
+                if self.getLayer(j).getBias():
                     bias = self.getLayer(j-1).getBias()
                     # biasValue = bias.weights[ds] + (
                     #             self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum() *
