@@ -286,17 +286,17 @@ class Net:
             self.getLayer(0).setNeurons(init)
             self.setExpectedResults(expected)
             self.forwardPropagate()
-            total_error += np.sum((0.5 * ((self.getExpectedResults().T - self.get_results())) ** 2))
+            total_error += np.sum((0.5 * (self.getExpectedResults().T - self.get_results()) ** 2))
         return total_error
         
     def backPropagate(self):
-        oldSelf = cp.deepcopy(self)
+        
         self.forwardPropagate()
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for ds in range(len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:
                     partial_error = self.getLayer(j).getValues() - self.getExpectedResults().T
-                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * partial_error[0][ds] * self.getLayer(j-1).getNeuron(ds).getValue()
+                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * partial_error[0][ds] * self.getLayer(j-1).getValues()
                 else:
                     upper_layer_delta_sums = self.getLayer(j+1).getDeltaSums()
                     current_neuron_values = self.getLayer(j).getValues()
@@ -307,13 +307,13 @@ class Net:
                         partial_sum += t[up_neur] * weight
                     
                     d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
-                    deltaSum = partial_sum * d_val * self.getLayer(j-1).getNeuron(ds).getValue()
+                    deltaSum = partial_sum * d_val * self.getLayer(j-1).getSums()
 
                 self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
 
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for ds in range(len(self.getLayer(j).getWeights())):
-                new_weight = oldSelf.getLayer(j).getNeuron(ds).getWeights() - (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum())
+                new_weight = self.getLayer(j).getNeuron(ds).getWeights() - (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum())
                 self.getLayer(j).getNeuron(ds).setWeights(new_weight)
         
         # if self.getLayer(j).getBias():
@@ -336,9 +336,9 @@ class Net:
             posy = interval
             for neuron_index in range(len(self.getLayer(layer_index).getNeurons())):
                 axs.add_artist(plt.Circle((posx, posy), radius))
-                text_to_show = 'sum:' + '{:.2f}'.format(self.getLayer(layer_index).getNeuron(neuron_index).getSum()[0])
+                text_to_show = 'sum:' + '{:.2f}'.format(float(self.getLayer(layer_index).getNeuron(neuron_index).getSum()))
                 text_to_show += "\n" + 'value:' + "{:.2f}".format(
-                    self.getLayer(layer_index).getNeuron(neuron_index).getValue()[0]
+                    float(self.getLayer(layer_index).getNeuron(neuron_index).getValue())
                 )
                 plt.text(posx, posy, text_to_show, fontsize=12)
                 if layer_index > 0:
