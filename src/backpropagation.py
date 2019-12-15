@@ -2,9 +2,7 @@
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
 import numpy as np
-import copy as cp
 import matplotlib.pyplot as plt
-import numpy.matlib
 import pandas as pd
 
 debug = 0
@@ -165,6 +163,7 @@ class Layer:
             deltasums.append(self.getNeuron(i).getDeltaSum())
         return np.array(deltasums)
 
+
 class Net:
     """ contains layers
     make a forward and backpropagation
@@ -173,14 +172,10 @@ class Net:
     """
 
     def __init__(self, name: str, learning_rate=0.5):
-        df = pd.read_csv('data/' + name)
+        self.learning_progress = []
         self.layers = []
         self.setName(name)
         self.learning_rate = learning_rate
-        # set input layer
-        inputLayer = Layer()
-        inputLayer.setNeurons(df.iloc[:, :].values.T)
-        self.setLayer(0, inputLayer)
         
     def setLayer(self, index, layer):
         self.getLayers().insert(index, layer)
@@ -290,7 +285,6 @@ class Net:
         return total_error
         
     def backPropagate(self):
-        
         self.forwardPropagate()
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for ds in range(len(self.getLayer(j).getWeights())):
@@ -375,6 +369,7 @@ class ActivationFn:
 
     @staticmethod
     def tanh(z):
+    #todo
         return np.tanh(z)
 
     @staticmethod

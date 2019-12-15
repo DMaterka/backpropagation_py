@@ -9,7 +9,7 @@ import os
 import re
 import matplotlib.pyplot as plt
 
-def train1d(net: backpropagation.Net, structure, iterations):
+def train(net: backpropagation.Net, structure, iterations):
     # define number of layers and neurons
     inputfile = net.getName()
     # input layer already set up
@@ -17,8 +17,10 @@ def train1d(net: backpropagation.Net, structure, iterations):
         structure = ast.literal_eval(structure)
     else:
         structure = [2, 2]
-        inputLayer = net.getLayer(0).setNeurons([[0], [0]])
+        inputLayer = backpropagation.Layer()
+        inputLayer = inputLayer.setNeurons([[0], [0]])
         inputLayer.setBias([.35, .35])
+        net.setLayer(1, inputLayer)
         
         hiddenLayer = backpropagation.Layer()
         hiddenLayer.setNeurons([[0], [0]])
@@ -146,5 +148,5 @@ if __name__ == "__main__":
     if not os.path.isfile('data/' + dbname):
         db_create.createSchema(dbname)
 
-    net = train1d(net, structure, iterations)
+    net = train(net, structure, iterations)
     net.print_network()
