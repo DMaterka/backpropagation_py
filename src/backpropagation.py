@@ -265,9 +265,10 @@ class Net:
                     values = currentLayer.getSums()
                 else:
                     values = currentLayer.getValues()
+                wt = np.repeat(weights[:, np.newaxis], len(values), 1)
+                for w in range(len(weights)):
+                    sum += wt[w][0] * values[w]
                     
-                sum += np.dot(weights, values)
-                
                 if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
                     sum += biasWeightsSum
@@ -287,23 +288,31 @@ class Net:
     def backPropagate(self):
         self.forwardPropagate()
         for j in range(len(self.getLayers()) - 1, 0, -1):
-            for ds in range(len(self.getLayer(j).getWeights())):
+            for weigth_index in range(len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:
+                    # this represents a value of partial derivative of results error dExp_results/dValues
                     partial_error = self.getLayer(j).getValues() - self.getExpectedResults().T
-                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum()) * partial_error[0][ds] * self.getLayer(j-1).getValues()
+                    # deltaSum is partial derivative of total error with respect to given weight which consists of:
+                    # partial derivative of next's neuron value with respect to the sum
+                    # times partial error
+                    # times next layer partial derivative of sum with respect to a weight
+                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weigth_index).getSum()) \
+                               * partial_error[0][weigth_index] \
+                               * self.getLayer(j-1).getValues()
                 else:
-                    upper_layer_delta_sums = self.getLayer(j+1).getDeltaSums()
-                    current_neuron_values = self.getLayer(j).getValues()
-                    t = upper_layer_delta_sums / current_neuron_values
                     partial_sum = 0
                     for up_neur in range(len(self.getLayer(j+1).getNeurons())):
-                        weight = self.getLayer(j + 1).getNeuron(up_neur).getWeights()[ds]
-                        partial_sum += t[up_neur] * weight
+                        weight = self.getLayer(j + 1).getNeuron(up_neur).getWeights()[weigth_index]
+                        err_times_upper_delta = (
+                                self.getLayer(j + 1).getNeuron(up_neur).getDeltaSum()[up_neur] /
+                                self.getLayer(j).getNeuron(up_neur).getValue()
+                        )
+                        partial_sum += err_times_upper_delta * weight
                     
-                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(ds).getSum())
+                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weigth_index).getSum())
                     deltaSum = partial_sum * d_val * self.getLayer(j-1).getSums()
 
-                self.getLayer(j).getNeuron(ds).setDeltaSum(deltaSum)
+                self.getLayer(j).getNeuron(weigth_index).setDeltaSum(deltaSum)
 
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for ds in range(len(self.getLayer(j).getWeights())):
@@ -317,7 +326,7 @@ class Net:
             #             self.getLayer(j).getNeuron(ds).getValue()
             # )
             # np.append(bias.weights, biasValue)
-                    
+            
     def print_network(self):
         fig, axs = plt.subplots()
         axs.set_xlim((0, 100))
