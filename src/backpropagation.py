@@ -83,14 +83,17 @@ class Layer:
         self.bias = None
         self.deltaSums = []
     
-    def setNeurons(self, sums):
+    def setNeurons(self, sums, activate=True):
         sums = np.array(sums)
         self.neurons = [Neuron() for i in range(0, len(sums))]
         for i in range(len(sums)):
             if debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
             self.neurons[i].setSum(sums[i])
-            self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
+            if activate == True:
+                self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
+            else:
+                self.neurons[i].setValue(sums)
            
         return self
     def getNeurons(self):
@@ -259,15 +262,17 @@ class Net:
             """ produce neurons' sums and values """
             for j in range(len(nextLayer.getNeurons())):
                 sum = 0
+                
                 weights = nextLayer.getNeuron(j).getWeights()
                 
                 if i == 0:
                     values = currentLayer.getSums()
                 else:
                     values = currentLayer.getValues()
-                wt = np.repeat(weights[:, np.newaxis], len(values), 1)
+                    
+                reshaped_weights = np.repeat(weights[:, np.newaxis], len(values), 1)
                 for w in range(len(weights)):
-                    sum += wt[w][0] * values[w]
+                    sum += reshaped_weights[w][0] * values[w]
                     
                 if currentLayer.getBias() is not None:
                     biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
@@ -359,7 +364,21 @@ class Net:
             posx += radius*4
             
         fig.tight_layout()
-    
+        plt.show()
+
+    def print_decision_regions(self, training_sets):
+        inputs = [[], []]
+        colours = ['c', 'm', 'y', 'k']
+        for inp in range(len(training_sets)):
+            init, expected = training_sets[inp]
+            for i in range(len(init)):
+                inputs[i].append(init[i])
+                self.getLayer(0).setNeurons(init)
+                self.setExpectedResults(expected)
+                self.forwardPropagate()
+                colour_index = int(round(self.get_results()[0]))
+                assigned_colour = colours[colour_index]
+                plt.scatter(init[0], init[1], s=30, c=assigned_colour)
         plt.show()
 
     def get_results(self):
