@@ -49,9 +49,12 @@ def train(inputfile, structure, iterations, learning_rate, batch_size=1):
         layer = backpropagation.Layer()
         layer.setNeurons(np.zeros([value]))
         #todo set weights randomly if none provided
-        layer.setWeights(np.random.rand(value, value))
-        # it seems that different bias values works well
-        layer.setBias(np.random.rand(value))
+        if index > 0:
+            layer.setWeights(np.random.rand(value, structure[index-1]))
+        
+        if index < len(structure)-1:
+            # it seems that different bias values works better
+            layer.setBias(np.random.rand(structure[index+1]))
         net.setLayer(index, layer)
 
     #online training algorithm  with batch size=1 (one training set processed at once)
@@ -59,7 +62,7 @@ def train(inputfile, structure, iterations, learning_rate, batch_size=1):
     for i in range(0, int(iterations)):
         modulo = divmod(i, len(n_training_sets))[1]
         inputs, outputs = n_training_sets[modulo]
-        net.getLayer(0).setNeurons(inputs.T)
+        net.getLayer(0).setNeurons(inputs.T, False)
         net.setExpectedResults([outputs])
         net.backPropagate()
         total_error = net.calculateTotalError(n_training_sets)
@@ -70,6 +73,7 @@ def train(inputfile, structure, iterations, learning_rate, batch_size=1):
     plt.tight_layout()
     plt.show()
     
+    net.print_decision_regions(n_training_sets)
     if 'testing' in os.environ:
         dotenv.load_dotenv('.env.testing')
     else:
