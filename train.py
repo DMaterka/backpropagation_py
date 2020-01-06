@@ -11,8 +11,7 @@ import os
 import pandas as pd
 import re
 from operator import itemgetter
-import matplotlib.pyplot as plt
-
+from src import visualise
 
 def train(inputfile, structure, iterations, learning_rate, batch_size=1):
     if structure != []:
@@ -58,7 +57,7 @@ def train(inputfile, structure, iterations, learning_rate, batch_size=1):
         net.setLayer(index, layer)
 
     #online training algorithm  with batch size=1 (one training set processed at once)
-    curve = []
+    learning_curve_data = []
     for i in range(0, int(iterations)):
         modulo = divmod(i, len(n_training_sets))[1]
         inputs, outputs = n_training_sets[modulo]
@@ -67,13 +66,11 @@ def train(inputfile, structure, iterations, learning_rate, batch_size=1):
         net.backPropagate()
         total_error = net.calculateTotalError(n_training_sets)
         print(total_error)
-        curve.append(total_error)
-
-    plt.plot(range(0, int(iterations)), curve)
-    plt.tight_layout()
-    plt.show()
+        learning_curve_data.append(total_error)
     
-    net.print_decision_regions(n_training_sets)
+    visualise.print_learning_curve(learning_curve_data)
+    visualise.print_decision_regions(n_training_sets, net)
+    
     if 'testing' in os.environ:
         dotenv.load_dotenv('.env.testing')
     else:
@@ -181,6 +178,6 @@ if __name__ == "__main__":
             
     net = train(inputfile, structure, iterations, learning_rate, batch_size)
     
-    net.print_network()
+    visualise.print_network(net)
     
     print("result is", net.get_results())
