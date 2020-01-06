@@ -2,8 +2,6 @@
 # To change this template file, choose Tools | Templates
 # and open the template in the editor.
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
 debug = 0
 
@@ -262,7 +260,6 @@ class Net:
             """ produce neurons' sums and values """
             for j in range(len(nextLayer.getNeurons())):
                 sum = 0
-                
                 weights = nextLayer.getNeuron(j).getWeights()
                 
                 if i == 0:
@@ -331,56 +328,7 @@ class Net:
             #             self.getLayer(j).getNeuron(ds).getValue()
             # )
             # np.append(bias.weights, biasValue)
-            
-    def print_network(self):
-        fig, axs = plt.subplots()
-        axs.set_xlim((0, 100))
-        axs.set_ylim((0, 100))
-        posx = 10
-        radius = 10
-        for layer_index in range(len(self.getLayers())):
-            interval = 100 / (len(
-                self.getLayer(layer_index).getNeurons()) + 1)
-            posy = interval
-            for neuron_index in range(len(self.getLayer(layer_index).getNeurons())):
-                axs.add_artist(plt.Circle((posx, posy), radius))
-                text_to_show = 'sum:' + '{:.2f}'.format(float(self.getLayer(layer_index).getNeuron(neuron_index).getSum()))
-                text_to_show += "\n" + 'value:' + "{:.2f}".format(
-                    float(self.getLayer(layer_index).getNeuron(neuron_index).getValue())
-                )
-                plt.text(posx, posy, text_to_show, fontsize=12)
-                if layer_index > 0:
-                    weights = ''
-                    for weight_index in range(0, len(self.getLayer(layer_index).getNeuron(neuron_index).getWeights())):
-                        weight_value = self.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index]
-                        if np.ndim(weight_value) == 0:
-                            weight_value = np.expand_dims(
-                                self.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index], 1
-                            )
-                        weights += '{:.2f}'.format(weight_value[0]) + "\n"
-                    plt.text(posx - radius, posy-0.5*interval, weights, fontsize=12)
-                posy += interval
-                self.getLayer(layer_index).getNeuron(neuron_index).setPosition([posx, posy])
-            posx += radius*4
-            
-        fig.tight_layout()
-        plt.show()
-
-    def print_decision_regions(self, training_sets):
-        inputs = [[], []]
-        colours = ['c', 'm', 'y', 'k']
-        for inp in range(len(training_sets)):
-            init, expected = training_sets[inp]
-            for i in range(len(init)):
-                inputs[i].append(init[i])
-                self.getLayer(0).setNeurons(init)
-                self.setExpectedResults(expected)
-                self.forwardPropagate()
-                colour_index = int(round(self.get_results()[0]))
-                assigned_colour = colours[colour_index]
-                plt.scatter(init[0], init[1], s=30, c=assigned_colour)
-        plt.show()
-
+        
     def get_results(self):
         return self.getLayer(len(self.getLayers()) - 1).getValues()
     
