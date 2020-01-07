@@ -62,8 +62,13 @@ def train(net: backpropagation.Net, iterations):
         print("The model has been updated")
     else:
         print("The total error is the same as previous one")
-    #TODO WIP
-    dbops.load_net(inputfile)
+    
+    testnet = dbops.load_net(inputfile)
+    testnet.forwardPropagate()
+    # TODO must be equal
+    print(testnet.get_results())
+    print(net.get_results())
+    visualise.print_network(testnet)
     return net
 
 
