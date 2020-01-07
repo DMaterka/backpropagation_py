@@ -178,7 +178,7 @@ class Net:
         self.setName(name)
         self.learning_rate = learning_rate
         
-    def setLayer(self, index, layer):
+    def setLayer(self, index, layer: Layer):
         self.getLayers().insert(index, layer)
         # if len(layer.getWeights()) > 0:
             # if np.shape(layer.getWeights()) != (len(layer.getNeurons()), len(self.getLayer(index-1).getNeurons())):

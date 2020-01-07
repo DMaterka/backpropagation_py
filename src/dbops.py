@@ -2,6 +2,9 @@ from src import backpropagation
 import sqlite3
 import json
 import os
+import ast
+#TODO make a class with singleton to store connection object
+#
 
 
 def createSchema(name):
@@ -74,35 +77,36 @@ def update_net(net: backpropagation.Net, total_error, model_name):
     conn.commit()
     conn.close()
 
-#TODO
+
 def load_net(model_name):
-    net = backpropagation.Net
     conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (model_name,))
     results = c.fetchone()
+    net = backpropagation.Net(results['name'], 0.5)
     modelid = results['id']
     c.execute('SELECT * FROM layers WHERE model_id=?', (modelid,))
     layers = c.fetchall()
     for layer in layers:
         current_layer = backpropagation.Layer()
-        c.execute('SELECT * FROM neurons WHERE layerid=? AND modelid=?', (layer['layer_id'], modelid))
+        c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
         neurons = c.fetchall()
+        neuron_weights = []
         for neuron in neurons:
             current_neuron = backpropagation.Neuron()
-            c.execute('SELECT * FROM weights WHERE layerid=? AND modelid=?', (layer['layer_id'], modelid))
+            evaluated_value = ast.literal_eval(neuron['value'])[0]
+            current_neuron.setValue(evaluated_value)
             if layer['layer_index'] > 0:
-                for prev_layer_neuron_index in range(0, len(net.getLayer(layer['layer_index'] - 1).getNeurons())):
-                    weights = net.getLayer(layer['layer_index']).getNeuron(neuron['neuron_index']).getWeights()[
-                        prev_layer_neuron_index]
-                    c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?',
-                              (prev_layer_neuron_index, layer['layer_index'] - 1))
-                    prev_neuron = c.fetchone()
-                    c.execute('SELECT * FROM weights WHERE',
-                              (prev_neuron['id'], neuron['neuron_index'], json.dumps(weights.tolist())))
+                c.execute(
+                    'SELECT weight FROM weights WHERE neuron_to=?', (neuron['id'],)
+                )
+                neuron_weights.append(c.fetchall())
+                
             current_layer.setNeuron(neuron['neuron_index'], current_neuron)
+        current_layer.setWeights(neuron_weights)
         net.setLayer(layer['layer_index'], current_layer)
+    return net
 
 def get_model_results(name):
     conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
