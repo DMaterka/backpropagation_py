@@ -11,8 +11,8 @@ import re
 from operator import itemgetter
 
 
-def prepare_net(hidden_structure, learning_rate, training_sets):
-    net = backpropagation.Net(inputfile, int(learning_rate))
+def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
+    net = backpropagation.Net(inputfile, float(learning_rate))
     if hidden_structure:
         structure = ast.literal_eval(hidden_structure)
     else:
@@ -38,7 +38,11 @@ def prepare_net(hidden_structure, learning_rate, training_sets):
 
 
 def prepare_training_sets(inputfile):
-    df = pd.read_csv('data/' + inputfile)
+    if 'testing' in os.environ:
+        df = pd.read_csv('test/data/' + inputfile)
+    else:
+        df = pd.read_csv('data/' + inputfile)
+        
     column_names = df.columns.values
     input_positions = []
     output_positions = []
@@ -59,7 +63,7 @@ def prepare_training_sets(inputfile):
     return n_training_sets
 
 
-def train(net, iterations, training_sets, batch_size=1):
+def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
     #online training algorithm  with batch size=1 (one training set processed at once)
     learning_curve_data = []
     for i in range(0, int(iterations)):
@@ -96,7 +100,7 @@ if __name__ == "__main__":
     outputfile = ''
     iterations = 1
     argv = sys.argv[1:]
-    learning_rate = 1
+    learning_rate = 0.5
     structure = []
     batch_size = 1
     
@@ -126,8 +130,8 @@ if __name__ == "__main__":
             structure = arg
     
     training_sets = prepare_training_sets(inputfile)
-    net = prepare_net(structure, learning_rate, training_sets)
-    trained_net = train(net, iterations, training_sets, batch_size)
+    net = prepare_net(structure, learning_rate, training_sets, inputfile)
+    trained_net = perform_training(net, iterations, training_sets, inputfile, batch_size)
     
     visualise.print_network(trained_net)
     
