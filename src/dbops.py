@@ -3,12 +3,18 @@ import sqlite3
 import json
 import os
 import ast
+
 #TODO make a class with singleton to store connection object
 #
 
 
 def createSchema(name):
-    conn = sqlite3.connect('data/' + name)
+    if 'testing' in os.environ:
+        db_path = 'test/data/' + name
+    else:
+        db_path = 'data/' + name
+        
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('''CREATE TABLE models (id integer PRIMARY KEY, name text, error real)''')
     c.execute('''CREATE TABLE layers (id integer PRIMARY KEY, layer_index integer, model_id integer)''')
@@ -21,7 +27,11 @@ def createSchema(name):
 
 
 def save_net(net: backpropagation.Net, total_error, model_name):
-    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    if 'testing' in os.environ:
+        db_path = 'test/data/' + os.environ['DB_NAME']
+    else:
+        db_path = 'data/' + os.environ['DB_NAME']
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('INSERT INTO models (name, error) VALUES (?, ?)', (model_name, total_error))
@@ -52,7 +62,11 @@ def save_net(net: backpropagation.Net, total_error, model_name):
 
 
 def update_net(net: backpropagation.Net, total_error, model_name):
-    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    if 'testing' in os.environ:
+        db_path = 'test/data/' + os.environ['DB_NAME']
+    else:
+        db_path = 'data/' + os.environ['DB_NAME']
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (model_name,))
@@ -79,7 +93,7 @@ def update_net(net: backpropagation.Net, total_error, model_name):
 
 
 def load_net(model_name):
-    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    conn = sqlite3.connect('test/data/' + os.environ['DB_NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (model_name,))
@@ -108,10 +122,23 @@ def load_net(model_name):
         net.setLayer(layer['layer_index'], current_layer)
     return net
 
+
 def get_model_results(name):
-    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    if 'testing' in os.environ:
+        db_path = 'test/data/' + os.environ['DB_NAME']
+    else:
+        db_path = 'data/' + os.environ['DB_NAME']
+        
+    if not os.path.exists(db_path):
+        return 0
+    
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute('SELECT * FROM models WHERE name=?', (name,))
-    results = c.fetchone()
+    try:
+        c.execute('SELECT * FROM models WHERE name=?', (name,))
+        results = c.fetchone()
+    except:
+        return None
+        
     return results
