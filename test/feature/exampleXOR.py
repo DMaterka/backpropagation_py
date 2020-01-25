@@ -29,8 +29,7 @@ if __name__ == "__main__":
     outputLayer = net.getLayer(2)
     outputLayer.setNeurons([[0], [0]])
     outputLayer.setWeights([[.4, .45], [.5, .55]])
-    net.setExpectedResults([[0], [0]])
-    
+
     if not os.path.isfile('test/data/' + os.environ['DB_NAME']):
         dbops.createSchema(os.environ['DB_NAME'])
     

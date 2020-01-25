@@ -9,7 +9,7 @@ import ast
 
 
 def createSchema(name):
-    if 'testing' in os.environ:
+    if 'TESTING' in os.environ:
         db_path = 'test/data/' + name
     else:
         db_path = 'data/' + name
@@ -62,7 +62,7 @@ def save_net(net: backpropagation.Net, total_error, model_name):
 
 
 def update_net(net: backpropagation.Net, total_error, model_name):
-    if 'testing' in os.environ:
+    if 'TESTING' in os.environ:
         db_path = 'test/data/' + os.environ['DB_NAME']
     else:
         db_path = 'data/' + os.environ['DB_NAME']

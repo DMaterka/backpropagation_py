@@ -290,7 +290,7 @@ class Net:
     def backPropagate(self):
         self.forwardPropagate()
         for j in range(len(self.getLayers()) - 1, 0, -1):
-            for weigth_index in range(len(self.getLayer(j).getWeights())):
+            for weight_index in range(len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:
                     # this represents a value of partial derivative of results error dExp_results/dValues
                     partial_error = self.getLayer(j).getValues() - self.getExpectedResults().T
@@ -298,23 +298,23 @@ class Net:
                     # partial derivative of next's neuron value with respect to the sum
                     # times partial error
                     # times next layer partial derivative of sum with respect to a weight
-                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weigth_index).getSum()) \
-                               * partial_error[0][weigth_index] \
+                    deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weight_index).getSum()) \
+                               * partial_error[0][weight_index] \
                                * self.getLayer(j-1).getValues()
                 else:
                     partial_sum = 0
                     for up_neur in range(len(self.getLayer(j+1).getNeurons())):
-                        weight = self.getLayer(j + 1).getNeuron(up_neur).getWeights()[weigth_index]
+                        weight = self.getLayer(j + 1).getNeuron(up_neur).getWeights()[weight_index]
                         err_times_upper_delta = (
                                 self.getLayer(j + 1).getNeuron(up_neur).getDeltaSum()[up_neur] /
                                 self.getLayer(j).getNeuron(up_neur).getValue()
                         )
                         partial_sum += err_times_upper_delta * weight
                     
-                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weigth_index).getSum())
+                    d_val = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weight_index).getSum())
                     deltaSum = partial_sum * d_val * self.getLayer(j-1).getSums()
 
-                self.getLayer(j).getNeuron(weigth_index).setDeltaSum(deltaSum)
+                self.getLayer(j).getNeuron(weight_index).setDeltaSum(deltaSum)
 
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for ds in range(len(self.getLayer(j).getWeights())):
