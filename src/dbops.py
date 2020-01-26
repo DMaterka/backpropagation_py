@@ -70,14 +70,20 @@ def save_net(net: backpropagation.Net, total_error, model_name):
         if bias:
             sums = []
             c.execute(
-                'INSERT INTO neurons (neuron_index, layer_id, sum, value) VALUES (?, ?, ?, ?)',
+                'INSERT INTO neurons (neuron_index, layer_id, sum, value, is_bias) VALUES (?, ?, ?, ?, ?)',
                 (
-                    0, layerid, json.dumps(sums), json.dumps(sums)
+                    0, layerid, json.dumps(sums), json.dumps(sums), True
                 )
             )
             bias_id = c.lastrowid
-            c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                      (0, bias_id, json.dumps(bias.getWeights().tolist())))
+            for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
+                c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?',
+                          (prev_layer_neuron_index, layerid))
+                current_neuron = c.fetchone()
+                c.execute(
+                    'INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
+                    (bias_id, current_neuron['id'], json.dumps(bias.getWeights().tolist()))
+                )
     conn.commit()
     conn.close()
 
@@ -132,17 +138,32 @@ def load_net(model_name):
         c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
         neurons = c.fetchall()
         neuron_weights = []
+        bias_weights = []
         for neuron in neurons:
-            current_neuron = backpropagation.Neuron()
-            current_neuron.setValue(neuron['value'])
-            if layer['layer_index'] > 0:
+            if neuron['is_bias'] == 1:
+                current_bias = backpropagation.Neuron(True)
+                current_bias.setValue(1)
+                c.execute(
+                    'SELECT weight FROM weights WHERE neuron_from=?', (neuron['id'],)
+                )
+                db_weights = c.fetchone()['weight']
+                # current_bias.setWeights(db_weights)
+                bias_weights.append(ast.literal_eval(db_weights))
+            else:
+                current_neuron = backpropagation.Neuron()
+                current_neuron.setValue(neuron['value'])
                 c.execute(
                     'SELECT weight FROM weights WHERE neuron_to=?', (neuron['id'],)
                 )
-                neuron_weights.append(c.fetchall())
-                
-            current_layer.setNeuron(neuron['neuron_index'], current_neuron)
+                db_weights = c.fetchone()['weight']
+                current_neuron.setWeights(db_weights)
+                neuron_weights.append(db_weights)
+                current_layer.setNeuron(neuron['neuron_index'], current_neuron)
+            
         current_layer.setWeights(neuron_weights)
+        if bias_weights:
+            # drop bias container dimension in order to keep dimensions
+            current_layer.setBias(bias_weights[0])
         net.setLayer(layer['layer_index'], current_layer)
     return net
 
@@ -164,15 +185,12 @@ def delete_model(model_name):
         c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
         neurons = c.fetchall()
         for neuron in neurons:
-            current_neuron = backpropagation.Neuron()
-            evaluated_value = ast.literal_eval(neuron['value'])[0]
-            current_neuron.setValue(evaluated_value)
-            if layer['layer_index'] > 0:
-                c.execute(
-                    'DELETE * FROM weights WHERE neuron_to=?', (neuron['id'],)
-                )
-        c.execute('DELETE * FROM neurons WHERE layer_id=?', (layer['id'],))
-    c.execute('DELETE * FROM layers WHERE model_id=?', (modelid,))
+            c.execute(
+                'DELETE FROM weights WHERE neuron_to=?', (neuron['id'],)
+            )
+        c.execute('DELETE FROM neurons WHERE layer_id=?', (layer['id'],))
+    c.execute('DELETE FROM layers WHERE model_id=?', (modelid,))
+    c.execute('DELETE FROM models WHERE id=?', (modelid,))
     conn.commit()
     conn.close()
 
