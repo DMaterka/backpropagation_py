@@ -27,7 +27,9 @@ class TestStorage(unittest.TestCase):
     def test_stored_network_equals_read_one(self):
         loaded_net = dbops.load_net(self.model_name)
         # test if first layer bias are the same
-        self.assertAlmostEqual(self.net.getLayer(0).getBias(), loaded_net.getLayer(0).getBias())
+        first_net_first_layer_weights = self.net.getLayer(0).getBias().getWeights()
+        second_net_first_layer_weights = loaded_net.getLayer(0).getBias().getWeights()
+        self.assertEqual(first_net_first_layer_weights.any(), second_net_first_layer_weights.any())
     
     def tearDown(self) -> None:
         dbops.delete_model(self.model_name)

@@ -17,14 +17,14 @@ class Neuron:
         self.is_bias = is_bias
         self.value = 0
         self.sum = 0
-        self.is_bias = 0
         self.weights = []
         self.deltaSum = None
         self.position = None
     
     def setValue(self, value):
         if self.is_bias:
-            raise Exception("Bias value or sum cannot be set")
+            self.value = 1
+            return self
         self.value = np.array(value)
         if debug:
             print("   I assign a value of " + str(self.value) + " to the neuron " + str(self))
