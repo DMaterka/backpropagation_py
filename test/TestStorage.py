@@ -1,8 +1,6 @@
 import unittest
-from src import backpropagation, db_create
 import train
-import predict
-import sqlite3
+from src import dbops
 import os
 import dotenv
 
@@ -11,24 +9,28 @@ class TestStorage(unittest.TestCase):
     """Testing reading and writing network to db"""
 
     def setUp(self):
-        os.environ["testing"] = "1"
-        dotenv.load_dotenv('.env.testing')
-        conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
-        install.createSchema(conn)
-        conn.close()
-        net = backpropagation.Net('xor.csv', 1)
-        self.train_phase_output = train.train(net, "[3, 1]", 1000)
-        print("result is", self.train_phase_output.get_results())
-        net2 = backpropagation.Net('xor.csv', 1)
-        self.predict_phase_output = predict.predict(net2)
-        print("The result is ", self.predict_phase_output.get_results())
+        dotenv.load_dotenv('../.env.testing')
+        inputfile = 'xor.csv'
+        learning_rate = 0.5
+        structure = "[2]"
+        self.model_name = 'storage_test_model'
+        training_sets = train.prepare_training_sets(inputfile)
+        self.net = train.prepare_net(structure, learning_rate, training_sets, inputfile)
+    
+        self.net.getLayer(0).setBias([.35, .35])
+        self.net.getLayer(1).setWeights([[.15, .2], [.25, .3]]).setBias([.6, .6])
+        self.net.getLayer(2).setWeights([[.4, .45], [.5, .55]])
+        if not os.path.isfile(os.environ['PROJECT_ROOT'] + 'test/data/' + os.environ['DB_NAME']):
+            dbops.createSchema(os.environ['DB_NAME'])
+        dbops.save_net(self.net, 100, self.model_name)
 
     def test_stored_network_equals_read_one(self):
-        """Testing set/get method"""
-        self.assertAlmostEqual(self.train_phase_output.get_results(), self.predict_phase_output.get_results())
+        loaded_net = dbops.load_net(self.model_name)
+        # test if first layer bias are the same
+        self.assertAlmostEqual(self.net.getLayer(0).getBias(), loaded_net.getLayer(0).getBias())
     
     def tearDown(self) -> None:
-        os.remove('data/testing.db')
+        dbops.delete_model(self.model_name)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

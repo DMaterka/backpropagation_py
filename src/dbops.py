@@ -5,12 +5,11 @@ import os
 import ast
 
 #TODO make a class with singleton to store connection object
-#
-
+#TODO saving/loading net with bias
 
 def createSchema(name):
     if 'TESTING' in os.environ:
-        db_path = 'test/data/' + name
+        db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + name
     else:
         db_path = 'data/' + name
         
@@ -19,7 +18,16 @@ def createSchema(name):
     c.execute('''CREATE TABLE models (id integer PRIMARY KEY, name text, error real)''')
     c.execute('''CREATE TABLE layers (id integer PRIMARY KEY, layer_index integer, model_id integer)''')
     c.execute(
-        '''CREATE TABLE neurons (id integer PRIMARY KEY, neuron_index integer, layer_id integer, sum json, value json)'''
+        '''CREATE TABLE
+            neurons (
+                id integer PRIMARY KEY,
+                neuron_index integer,
+                layer_id integer,
+                sum json,
+                value json,
+                is_bias bool DEFAULT FALSE
+            )
+        '''
     )
     c.execute('''CREATE TABLE weights (id integer PRIMARY KEY, neuron_from integer, neuron_to integer, weight json)''')
     conn.commit()
@@ -28,7 +36,7 @@ def createSchema(name):
 
 def save_net(net: backpropagation.Net, total_error, model_name):
     if 'testing' in os.environ:
-        db_path = 'test/data/' + os.environ['DB_NAME']
+        db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + os.environ['DB_NAME']
     else:
         db_path = 'data/' + os.environ['DB_NAME']
     conn = sqlite3.connect(db_path)
@@ -57,6 +65,19 @@ def save_net(net: backpropagation.Net, total_error, model_name):
                     prev_neuron = c.fetchone()
                     c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
                               (prev_neuron['id'], neuron_id, json.dumps(weights.tolist())))
+        
+        bias = net.getLayer(layer_index).getBias()
+        if bias:
+            sums = []
+            c.execute(
+                'INSERT INTO neurons (neuron_index, layer_id, sum, value) VALUES (?, ?, ?, ?)',
+                (
+                    0, layerid, json.dumps(sums), json.dumps(sums)
+                )
+            )
+            bias_id = c.lastrowid
+            c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
+                      (0, bias_id, json.dumps(bias.getWeights().tolist())))
     conn.commit()
     conn.close()
 
@@ -93,7 +114,11 @@ def update_net(net: backpropagation.Net, total_error, model_name):
 
 
 def load_net(model_name):
-    conn = sqlite3.connect('test/data/' + os.environ['DB_NAME'])
+    if 'TESTING' in os.environ:
+        db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + os.environ['DB_NAME']
+    else:
+        db_path = 'data/' + os.environ['DB_NAME']
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (model_name,))
@@ -109,8 +134,7 @@ def load_net(model_name):
         neuron_weights = []
         for neuron in neurons:
             current_neuron = backpropagation.Neuron()
-            evaluated_value = ast.literal_eval(neuron['value'])[0]
-            current_neuron.setValue(evaluated_value)
+            current_neuron.setValue(neuron['value'])
             if layer['layer_index'] > 0:
                 c.execute(
                     'SELECT weight FROM weights WHERE neuron_to=?', (neuron['id'],)
@@ -123,9 +147,38 @@ def load_net(model_name):
     return net
 
 
+def delete_model(model_name):
+    if 'TESTING' in os.environ:
+        db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + os.environ['DB_NAME']
+    else:
+        db_path = 'data/' + os.environ['DB_NAME']
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM models WHERE name=?', (model_name,))
+    results = c.fetchone()
+    modelid = results['id']
+    c.execute('SELECT * FROM layers WHERE model_id=?', (modelid,))
+    layers = c.fetchall()
+    for layer in layers:
+        c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
+        neurons = c.fetchall()
+        for neuron in neurons:
+            current_neuron = backpropagation.Neuron()
+            evaluated_value = ast.literal_eval(neuron['value'])[0]
+            current_neuron.setValue(evaluated_value)
+            if layer['layer_index'] > 0:
+                c.execute(
+                    'DELETE * FROM weights WHERE neuron_to=?', (neuron['id'],)
+                )
+        c.execute('DELETE * FROM neurons WHERE layer_id=?', (layer['id'],))
+    c.execute('DELETE * FROM layers WHERE model_id=?', (modelid,))
+    conn.commit()
+    conn.close()
+
 def get_model_results(name):
     if 'testing' in os.environ:
-        db_path = 'test/data/' + os.environ['DB_NAME']
+        db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + os.environ['DB_NAME']
     else:
         db_path = 'data/' + os.environ['DB_NAME']
         

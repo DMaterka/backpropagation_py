@@ -37,7 +37,7 @@ def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
 
 def prepare_training_sets(inputfile):
     if 'testing' in os.environ:
-        df = pd.read_csv('test/data/' + inputfile)
+        df = pd.read_csv(os.environ['PROJECT_ROOT'] + 'test/data/' + inputfile)
     else:
         df = pd.read_csv('data/' + inputfile)
     

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     if not os.path.isfile('test/data/' + os.environ['DB_NAME']):
         dbops.createSchema(os.environ['DB_NAME'])
-    
+    dbops.save_net(net, 100, 'initial')
     trained_net = train.perform_training(net, iterations, training_sets, inputfile, batch_size)
     
     visualise.print_network(trained_net)
