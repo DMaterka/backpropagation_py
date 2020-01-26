@@ -7,8 +7,6 @@ import ast
 import dotenv
 import os
 import pandas as pd
-import re
-from operator import itemgetter
 
 
 def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
@@ -42,23 +40,14 @@ def prepare_training_sets(inputfile):
         df = pd.read_csv('test/data/' + inputfile)
     else:
         df = pd.read_csv('data/' + inputfile)
-        
-    column_names = df.columns.values
-    input_positions = []
-    output_positions = []
-    for index, value in enumerate(column_names):
-        if re.match("input", value):
-            input_positions.append(index)
-        else:
-            output_positions.append(index)
     
     training_sets = df.iloc[:, :].values
+    inputs = df.filter(regex=("input")).values
+    outputs = df.filter(regex=("output")).values
     n_training_sets = []
-    # todo make training sets parsing on one go
+    # reorder data into sets, do something else to drop the loop #todo
     for ind, val in enumerate(training_sets):
-        init_inputs = itemgetter(input_positions)(val)
-        init_outputs = itemgetter(output_positions)(val)
-        n_training_sets.insert(ind, [init_inputs, init_outputs])
+        n_training_sets.insert(ind, [inputs[ind], outputs[ind]])
      
     return n_training_sets
 
@@ -89,7 +78,7 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
         dbops.update_net(net, total_error, inputfile)
         print("The model has been updated")
     else:
-        print("The total error is the same as previous one")
+        print("Total error is the same as previous one")
     
     return net
 

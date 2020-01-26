@@ -1,5 +1,5 @@
-input1,input2, exp_result1, exp_result2
-1,1, 0, 0
-1,0, 1, 1
-0,1, 1, 1
+input1,input2, output1, output2
 0,0, 0, 0
+0,1, 1, 1
+1,0, 1, 1
+1,1, 0, 0
