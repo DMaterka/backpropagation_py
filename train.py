@@ -53,6 +53,7 @@ def prepare_training_sets(inputfile):
 
 
 def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
+    dbOpsObject = dbops.DbOps()
     #online training algorithm  with batch size=1 (one training set processed at once)
     learning_curve_data = []
     for i in range(0, int(iterations)):
@@ -69,13 +70,13 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
     visualise.print_decision_regions(training_sets, net)
     
     total_error = net.calculateTotalError(training_sets)
-    results = dbops.get_model_results(inputfile)
+    results = dbOpsObject.get_model_results(inputfile)
     
     if results is None:
-        dbops.save_net(net, total_error, inputfile)
+        dbOpsObject.save_net(net, total_error, inputfile)
         print("The model has been saved")
     elif total_error < results['error']:
-        dbops.update_net(net, total_error, inputfile)
+        dbOpsObject.update_net(net, total_error, inputfile)
         print("The model has been updated")
     else:
         print("Total error is the same as previous one")
@@ -97,8 +98,6 @@ if __name__ == "__main__":
         dotenv.load_dotenv('.env.testing')
     else:
         dotenv.load_dotenv('.env')
-    if not os.path.isfile('data/' + os.environ['DB_NAME']):
-        dbops.createSchema(os.environ['DB_NAME'])
         
     try:
         opts, args = getopt.getopt(argv, "hi:o:n:s:", ["ifile=", "ofile="])
