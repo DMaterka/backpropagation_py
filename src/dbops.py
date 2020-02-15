@@ -2,8 +2,7 @@ from src import backpropagation
 import sqlite3
 import json
 import os
-import ast
-
+import numpy as np
 
 class DbOps:
     
@@ -52,23 +51,26 @@ class DbOps:
             c.execute('INSERT INTO layers (layer_index, model_id) VALUES (?, ?)', (layer_index, modelid))
             layerid = c.lastrowid
             for neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
-                sums = net.getLayer(layer_index).getNeuron(neuron_index).getSum()
-                values = net.getLayer(layer_index).getNeuron(neuron_index).getValue()
+                current_neuron = net.getLayer(layer_index).getNeuron(neuron_index)
                 c.execute(
                     'INSERT INTO neurons (neuron_index, layer_id, sum, value) VALUES (?, ?, ?, ?)', (
-                        neuron_index, layerid, json.dumps(sums.tolist()), json.dumps(values.tolist())
+                        neuron_index,
+                        layerid,
+                        json.dumps(current_neuron.getSum().tolist()),
+                        json.dumps(current_neuron.getValue().tolist())
                     )
                 )
                 neuron_id = c.lastrowid
                 if layer_index > 0:
                     for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index - 1).getNeurons())):
-                        weights = net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[
-                            prev_layer_neuron_index]
+                        weights = net.getLayer(layer_index) \
+                            .getNeuron(neuron_index) \
+                            .getWeights()[prev_layer_neuron_index]
                         c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?',
                                   (prev_layer_neuron_index, layerid - 1))
                         prev_neuron = c.fetchone()
                         c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                                  (prev_neuron['id'], neuron_id, json.dumps(weights.tolist())))
+                                  (prev_neuron['id'], neuron_id, weights))
             
             bias = net.getLayer(layer_index).getBias()
             if bias:
@@ -80,13 +82,11 @@ class DbOps:
                     )
                 )
                 bias_id = c.lastrowid
-                for prev_layer_neuron_index in range(0, len(net.getLayer(layer_index).getNeurons())):
-                    c.execute('SELECT * FROM neurons WHERE neuron_index=? AND layer_id=?',
-                              (prev_layer_neuron_index, layerid))
-                    current_neuron = c.fetchone()
+
+                for next_layer_neuron_index in range(len(net.getLayer(layer_index+1).getNeurons())):
                     c.execute(
                         'INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                        (bias_id, current_neuron['id'], json.dumps(bias.getWeights().tolist()))
+                        (bias_id, bias_id + next_layer_neuron_index + 1, json.dumps(bias.getWeights()[next_layer_neuron_index]))
                     )
         self.conn.commit()
         self.conn.close()
@@ -140,14 +140,20 @@ class DbOps:
                     )
                     db_weights = c.fetchone()['weight']
                     # current_bias.setWeights(db_weights)
-                    bias_weights.append(ast.literal_eval(db_weights))
+                    bias_weights.append(db_weights)
                 else:
                     current_neuron = backpropagation.Neuron()
                     current_neuron.setValue(neuron['value'])
                     c.execute(
-                        'SELECT weight FROM weights WHERE neuron_to=?', (neuron['id'],)
+                        'SELECT weight FROM `weights`'
+                        'LEFT JOIN `neurons`'
+                        'ON `weights`.`neuron_from`=`neurons`.`id`'
+                        'WHERE `weights`.`neuron_to`=?'
+                        'AND `neurons`.`is_bias`=?',
+                        (neuron['id'], 'FALSE')
                     )
-                    db_weights = c.fetchone()['weight']
+                    db_weights = c.fetchall()
+                    db_weights = np.array(db_weights).flatten()
                     current_neuron.setWeights(db_weights)
                     neuron_weights.append(db_weights)
                     current_layer.setNeuron(neuron['neuron_index'], current_neuron)
