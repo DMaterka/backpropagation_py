@@ -7,7 +7,7 @@ fi
 if  [  `docker ps -a --filter "name=python_backprop_container" | grep python_backprop_container | wc -l` -lt 1 ]; then
     imageReference=`docker images -f "reference=python_backprop" -q`
     echo $imageReference
-    docker create --rm -t --name python_backprop_container -i $imageReference
+    docker create -v ${PWD}:/home/backpropagation_py --rm -t --name python_backprop_container -i $imageReference
 fi
 
 if  [  `docker ps --filter "name=python_backprop_container" | grep python_backprop_container | wc -l` -lt 1 ]; then
