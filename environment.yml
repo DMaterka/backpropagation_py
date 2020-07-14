@@ -1,0 +1,9 @@
+name: backpropagation
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - numpy
+  - matplotlib
+  - pandas
+prefix: /home/daniel/anaconda3/envs/backpropagation
