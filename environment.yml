@@ -6,4 +6,6 @@ dependencies:
   - numpy
   - matplotlib
   - pandas
+  - pip:
+      - python-dotenv
 prefix: /home/daniel/anaconda3/envs/backpropagation

@@ -93,12 +93,14 @@ if __name__ == "__main__":
     learning_rate = 0.5
     structure = []
     batch_size = 1
-    
+
     if 'testing' in os.environ:
-        dotenv.load_dotenv('.env.testing')
+        project_dotenv = '.env.testing'
     else:
-        dotenv.load_dotenv('.env')
-        
+        project_dotenv = '.env'
+
+    dotenv.load_dotenv(dotenv_path=project_dotenv)
+
     try:
         opts, args = getopt.getopt(argv, "hi:o:n:s:", ["ifile=", "ofile="])
     except getopt.GetoptError:

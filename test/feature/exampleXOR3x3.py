@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-from src import backpropagation, db_create
+from src import backpropagation, dbops
 import sqlite3
 import json
 import os
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     dbname = re.sub("\..*", "", inputfile) + '.db'
     
     if not os.path.isfile('data/' + dbname):
-        db_create.createSchema(dbname)
+        dbops.DbOps().createSchema(dbname)
 
     net = train(net, structure, iterations)
     net.print_network()

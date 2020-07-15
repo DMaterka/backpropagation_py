@@ -3,24 +3,26 @@ import sqlite3
 import json
 import os
 import numpy as np
+from pathlib import Path
+
 
 class DbOps:
-    
+
     def __init__(self, dbName=''):
         if dbName == '':
             """ A default database name given"""
             dbName = os.environ['DB_NAME']
         if 'TESTING' in os.environ:
-            self.db_path = os.environ['PROJECT_ROOT'] + 'test/data/' + dbName
+            self.db_path = Path('test/data/' + dbName).absolute()
         else:
-            self.db_path = 'data/' + dbName
-            
+            self.db_path = Path('data/' + dbName).absolute()
+
         if not os.path.isfile(self.db_path):
             """ If the database doesn't exist, create its structure"""
             self.createSchema(self.db_path)
-            
+
         self.conn = sqlite3.connect(self.db_path)
-        
+
     def createSchema(self, name):
         self.conn = sqlite3.connect(name)
         c = self.conn.cursor()
@@ -38,10 +40,11 @@ class DbOps:
                 )
             '''
         )
-        c.execute('''CREATE TABLE weights (id integer PRIMARY KEY, neuron_from integer, neuron_to integer, weight json)''')
+        c.execute(
+            '''CREATE TABLE weights (id integer PRIMARY KEY, neuron_from integer, neuron_to integer, weight json)''')
         self.conn.commit()
         self.conn.close()
-    
+
     def save_net(self, net: backpropagation.Net, total_error, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
@@ -71,7 +74,7 @@ class DbOps:
                         prev_neuron = c.fetchone()
                         c.execute('INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
                                   (prev_neuron['id'], neuron_id, weights))
-            
+
             bias = net.getLayer(layer_index).getBias()
             if bias:
                 sums = []
@@ -83,14 +86,15 @@ class DbOps:
                 )
                 bias_id = c.lastrowid
 
-                for next_layer_neuron_index in range(len(net.getLayer(layer_index+1).getNeurons())):
+                for next_layer_neuron_index in range(len(net.getLayer(layer_index + 1).getNeurons())):
                     c.execute(
                         'INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                        (bias_id, bias_id + next_layer_neuron_index + 1, json.dumps(bias.getWeights()[next_layer_neuron_index]))
+                        (bias_id, bias_id + next_layer_neuron_index + 1,
+                         json.dumps(bias.getWeights()[next_layer_neuron_index]))
                     )
         self.conn.commit()
         self.conn.close()
-    
+
     def update_net(self, net: backpropagation.Net, total_error, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
@@ -115,7 +119,7 @@ class DbOps:
                                   (json.dumps(weights.tolist()), prev_neuron['id'], neuron['id']))
         self.conn.commit()
         self.conn.close()
-    
+
     def load_net(self, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
@@ -157,14 +161,14 @@ class DbOps:
                     current_neuron.setWeights(db_weights)
                     neuron_weights.append(db_weights)
                     current_layer.setNeuron(neuron['neuron_index'], current_neuron)
-                
+
             current_layer.setWeights(neuron_weights)
             if bias_weights:
                 # drop bias container dimension in order to keep dimensions
                 current_layer.setBias(bias_weights[0])
             net.setLayer(layer['layer_index'], current_layer)
         return net
-    
+
     def delete_model(self, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
@@ -185,7 +189,7 @@ class DbOps:
         c.execute('DELETE FROM models WHERE id=?', (modelid,))
         self.conn.commit()
         self.conn.close()
-    
+
     def get_model_results(self, name):
         if not os.path.exists(self.db_path):
             return 0
@@ -197,5 +201,5 @@ class DbOps:
             results = c.fetchone()
         except:
             return None
-            
+
         return results
