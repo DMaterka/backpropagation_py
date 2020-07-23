@@ -6,4 +6,5 @@ nb-configuration.xml
 .idea/*
 data/*
 !data/xor.csv
+!data/test/xor.csv
 .env

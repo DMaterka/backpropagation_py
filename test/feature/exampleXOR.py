@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import os
 import train
 from src import visualise
 import dotenv
 
 if __name__ == "__main__":
-    dotenv.load_dotenv('.env.testing')
+    dotenv.load_dotenv('../../.env.testing')
     inputfile = 'xor.csv'
     iterations = 10000
     learning_rate = 0.5
