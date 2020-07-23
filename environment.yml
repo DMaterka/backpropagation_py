@@ -8,4 +8,4 @@ dependencies:
   - pandas
   - pip:
       - python-dotenv
-prefix: /home/daniel/anaconda3/envs/backpropagation
+prefix: anaconda3/envs/backpropagation

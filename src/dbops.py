@@ -3,23 +3,27 @@ import sqlite3
 import json
 import os
 import numpy as np
-from pathlib import Path
 
 
 class DbOps:
 
-    def __init__(self, dbName=''):
-        if dbName == '':
-            """ A default database name given"""
-            dbName = os.environ['DB_NAME']
-        if 'TESTING' in os.environ:
-            self.db_path = Path('test/data/' + dbName).absolute()
-        else:
-            self.db_path = Path('data/' + dbName).absolute()
+    def __init__(self, db_name=''):
+        # todo Move it to independent module for global usage
+        script_path = os.path.dirname(os.path.realpath(__file__))
 
-        if not os.path.isfile(self.db_path):
-            """ If the database doesn't exist, create its structure"""
-            self.createSchema(self.db_path)
+        if db_name == '':
+            """ A default database name given"""
+            db_name = os.environ['DB_NAME']
+
+        if 'TESTING' in os.environ:
+            partial_path = '../data/test/' + db_name
+        else:
+            partial_path = '../data/' + db_name
+
+        self.db_path = script_path + '/' + partial_path
+        if not os.path.exists(self.db_path):
+            print('Database does not exist, create one')
+            exit(1)
 
         self.conn = sqlite3.connect(self.db_path)
 

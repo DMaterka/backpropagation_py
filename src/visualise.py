@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from src import backpropagation
 
 
@@ -34,11 +33,10 @@ def print_network(net: backpropagation.Net):
                 weights = ''
                 for weight_index in range(0, len(net.getLayer(layer_index).getNeuron(neuron_index).getWeights())):
                     weight_value = net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index]
-                    if np.ndim(weight_value) == 0:
-                        weight_value = np.expand_dims(
-                            net.getLayer(layer_index).getNeuron(neuron_index).getWeights()[weight_index], 1
-                        )
-                    weights += '{:.2f}'.format(weight_value[0]) + "\n"
+                    # Multidimensional weights feature ... to be skipped for now
+                    # if np.ndim(weight_value) == 0:
+                    #     weight_value = np.expand_dims(weight_value, 1)
+                    weights += '{:.2f}'.format(weight_value) + "\n"
                 plt.text(posx - (radius * 2), posy, weights, fontsize=12)
             posy += interval
             net.getLayer(layer_index).getNeuron(neuron_index).setPosition([posx, posy])

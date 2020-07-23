@@ -36,10 +36,12 @@ def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
 
 
 def prepare_training_sets(inputfile):
-    if 'testing' in os.environ:
-        df = pd.read_csv(os.environ['PROJECT_ROOT'] + 'test/data/' + inputfile)
+    dotenv.load_dotenv('.env')
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    if 'TESTING' in os.environ:
+        df = pd.read_csv(script_path + '/data/test/' + inputfile)
     else:
-        df = pd.read_csv('data/' + inputfile)
+        df = pd.read_csv(script_path + '/data/' + inputfile)
     
     training_sets = df.iloc[:, :].values
     inputs = df.filter(regex=("input")).values
