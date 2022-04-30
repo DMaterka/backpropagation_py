@@ -1,14 +1,17 @@
+import matplotlib
 import matplotlib.pyplot as plt
 from src import backpropagation
 
 
 def print_learning_curve(curve_data):
+    matplotlib.use('TkAgg')
     plt.plot(range(0, len(curve_data)), curve_data)
     plt.tight_layout()
     plt.show()
 
 
 def print_network(net: backpropagation.Net):
+    matplotlib.use('TkAgg')
     """ Print network structure - neuron and connected weights"""
     fig, axs = plt.subplots()
     posx = 10

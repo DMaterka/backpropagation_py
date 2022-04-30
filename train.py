@@ -23,7 +23,7 @@ def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
     
     for index, value in enumerate(structure):
         layer = backpropagation.Layer()
-        layer.setNeurons(np.zeros([value]))
+        layer.setNeurons(np.ones([value]))
         # todo set weights randomly if none provided
         if index > 0:
             layer.setWeights(np.random.rand(value, structure[index - 1]))

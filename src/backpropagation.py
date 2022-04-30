@@ -313,10 +313,7 @@ class Net:
 
                 self.getLayer(j).getNeuron(weight_index).setDeltaSum(deltaSum)
 
-        for j in range(len(self.getLayers()) - 1, 0, -1):
-            for ds in range(len(self.getLayer(j).getWeights())):
-                new_weight = self.getLayer(j).getNeuron(ds).getWeights() - (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum())
-                self.getLayer(j).getNeuron(ds).setWeights(new_weight)
+        self.update_weights()
         
         # if self.getLayer(j).getBias():
             # bias = self.getLayer(j-1).getBias()
@@ -325,7 +322,16 @@ class Net:
             #             self.getLayer(j).getNeuron(ds).getValue()
             # )
             # np.append(bias.weights, biasValue)
-        
+
+    def update_weights(self):
+        for j in range(len(self.getLayers()) - 1, 0, -1):
+            for ds in range(len(self.getLayer(j).getWeights())):
+                new_weight = self.getLayer(j).getNeuron(ds).getWeights() - \
+                             (self.learning_rate * self.getLayer(j).getNeuron(ds).getDeltaSum())
+                self.getLayer(j).getNeuron(ds).setWeights(new_weight)
+                if not np.array_equal(self.getLayer(j).getNeuron(ds).getWeights(), new_weight):
+                    raise Exception("Weights were not saved")
+
     def get_results(self):
         return self.getLayer(len(self.getLayers()) - 1).getValues()
     
