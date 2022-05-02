@@ -88,7 +88,7 @@ class Layer:
             if activate == True:
                 self.neurons[i].setValue(ActivationFn().sigmoid(sums[i]))
             else:
-                self.neurons[i].setValue(sums)
+                self.neurons[i].setValue(sums[i])
            
         return self
     def getNeurons(self):
@@ -174,7 +174,7 @@ class Net:
         self.layers = []
         self.setName(name)
         self.learning_rate = learning_rate
-        
+
     def setLayer(self, index, layer: Layer):
         self.getLayers().insert(index, layer)
         # if len(layer.getWeights()) > 0:
@@ -256,36 +256,30 @@ class Net:
             
             """ produce neurons' sums and values """
             for j in range(len(nextLayer.getNeurons())):
-                sum = 0
                 weights = nextLayer.getNeuron(j).getWeights()
                 
                 if i == 0:
                     values = currentLayer.getSums()
                 else:
                     values = currentLayer.getValues()
-                    
-                reshaped_weights = np.repeat(weights[:, np.newaxis], len(values), 1)
-                for w in range(len(weights)):
-                    sum += reshaped_weights[w][0] * values[w]
-                    
+                sum = np.dot(weights, values)
                 if currentLayer.getBias() is not None:
-                    biasWeightsSum = currentLayer.getBiasWeights()[j] * 1
-                    sum += biasWeightsSum
+                    sum += currentLayer.getBiasWeights()[j] * 1
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
 
-    def calculateTotalError(self, inputs):
+    def calculateTotalError(self):
         total_error = 0
-        for index in range(len(inputs)):
-            init, expected = inputs[index]
-            self.getLayer(0).setNeurons(init)
-            self.setExpectedResults(expected)
-            self.forwardPropagate()
-            total_error += np.sum((0.5 * (self.getExpectedResults().T - self.get_results()) ** 2))
+        for index in range(len(self.getLayer(0).getNeurons())):
+            total_error += np.sum((0.5 * (self.getExpectedResults()[index] - self.get_results()[index]) ** 2))
+            self.learning_curve_data.append(total_error)
         return total_error
         
     def backPropagate(self):
         self.forwardPropagate()
+        total_error = self.calculateTotalError()
+        print(total_error)
+        total_error += np.sum((0.5 * (self.getExpectedResults().T - self.get_results()) ** 2))
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for weight_index in range(len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:
@@ -296,7 +290,7 @@ class Net:
                     # times partial error
                     # times next layer partial derivative of sum with respect to a weight
                     deltaSum = ActivationFn().sigmoidprime(self.getLayer(j).getNeuron(weight_index).getSum()) \
-                               * partial_error[0][weight_index] \
+                               * partial_error[weight_index] \
                                * self.getLayer(j-1).getValues()
                 else:
                     partial_sum = 0

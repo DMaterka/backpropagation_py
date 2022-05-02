@@ -15,7 +15,8 @@ class Test0DNetwork(unittest.TestCase):
 
         training_sets = train.prepare_training_sets(inputfile)
         self.net = train.prepare_net(structure, learning_rate, training_sets, inputfile)
-
+        self.net.getLayer(0).getNeuron(0).setValue(1)
+        self.net.getLayer(0).getNeuron(1).setValue(0)
         self.net.getLayer(1).setWeights([[.3, .5], [.4, .9], [.8, .2]])
         self.net.getLayer(2).setWeights([[.3, .5, .9]])
         self.net.setExpectedResults([[0]])
@@ -25,6 +26,7 @@ class Test0DNetwork(unittest.TestCase):
         self.net.forwardPropagate()
         # get network result
         value = self.net.getLayer(2).getNeuron(0).getValue()
+        print(value)
         self.assertTrue(np.allclose(value, [0.77807385]))
         self.assertTrue(np.allclose(self.net.get_results(), [0.77807385]))
         

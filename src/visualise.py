@@ -28,7 +28,7 @@ def print_network(net: backpropagation.Net):
             plt.scatter(posx, posy, 1000)
             text_to_show = 'sum:' + '{:.2f}'.format(
                 float(net.getLayer(layer_index).getNeuron(neuron_index).getSum()))
-            text_to_show += "\n" + 'value:' + "{:.2f}".format(
+            text_to_show += "\n" + 'value:' + "{:.4f}".format(
                 float(net.getLayer(layer_index).getNeuron(neuron_index).getValue())
             )
             plt.text(posx, posy, text_to_show, fontsize=12)

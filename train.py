@@ -57,21 +57,19 @@ def prepare_training_sets(inputfile):
 def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
     dbOpsObject = dbops.DbOps()
     #online training algorithm  with batch size=1 (one training set processed at once)
-    learning_curve_data = []
+    net.learning_curve_data = []
     for i in range(0, int(iterations)):
         modulo = divmod(i, len(training_sets))[1]
         inputs, outputs = training_sets[modulo]
-        net.getLayer(0).setNeurons(inputs.T, False)
-        net.setExpectedResults([outputs])
+        net.getLayer(0).setNeurons(inputs, False)
+        net.setExpectedResults(outputs)
         net.backPropagate()
-        total_error = net.calculateTotalError(training_sets)
-        print(total_error)
-        learning_curve_data.append(total_error)
+
     
-    visualise.print_learning_curve(learning_curve_data)
+    visualise.print_learning_curve(net.learning_curve_data)
     visualise.print_decision_regions(training_sets, net)
     
-    total_error = net.calculateTotalError(training_sets)
+    total_error = net.calculateTotalError()
     results = dbOpsObject.get_model_results(inputfile)
     
     if results is None:
