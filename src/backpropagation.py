@@ -270,7 +270,7 @@ class Net:
 
     def calculateTotalError(self):
         total_error = 0
-        for index in range(len(self.getLayer(0).getNeurons())):
+        for index in range(len(self.getExpectedResults())):
             total_error += np.sum((0.5 * (self.getExpectedResults()[index] - self.get_results()[index]) ** 2))
         self.learning_curve_data.append(total_error)
         return total_error

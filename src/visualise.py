@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from src import backpropagation
 
 
@@ -51,7 +52,7 @@ def print_network(net: backpropagation.Net):
 
 def print_decision_regions(training_sets, net: backpropagation.Net):
     inputs = [[], []]
-    colours = ['c', 'm', 'y', 'k']
+    data = {0: {0: [], 1: []}, 1: {0: [], 1: []}}
     for inp in range(len(training_sets)):
         init, expected = training_sets[inp]
         for i in range(len(init)):
@@ -59,8 +60,19 @@ def print_decision_regions(training_sets, net: backpropagation.Net):
             net.getLayer(0).setNeurons(init)
             net.setExpectedResults(expected)
             net.forwardPropagate()
-        colour_index = int(round(net.get_results()[0]))
-        assigned_colour = colours[colour_index]
-        plt.scatter(init[0], init[1], s=30, c=assigned_colour, label=colour_index)
+        color_index = net.get_results()[0]
+        if color_index > 0.5:
+            color_index = 1
+        else:
+            color_index = 0
+        data[color_index][0].append(init[0])
+        data[color_index][1].append(init[1])
+
+    colors = ['c', 'm', 'y', 'k']
+
+    for key in range(len(data)):
+        assigned_color = colors[key]
+        plt.scatter(data[key][0], data[key][1], s=30, c=assigned_color, label=key)
+
     plt.legend()
     plt.show()
