@@ -20,8 +20,7 @@ class Neuron:
     
     def setValue(self, value):
         if self.is_bias:
-            self.value = 1
-            return self
+            raise Exception("Bias value or sum cannot be set")
         self.value = np.array(value)
         if debug:
             print("   I assign a value of " + str(self.value) + " to the neuron " + str(self))
@@ -37,7 +36,7 @@ class Neuron:
             raise Exception("Bias value or sum cannot be set")
         self.sum = np.array(sum)
         if debug:
-            print("   I assign a sum of " + str(self.sum) + " to the neuron " + str(self))
+            print(" I assign a sum of " + str(self.sum) + " to the neuron " + str(self))
     
     def getSum(self):
         if self.is_bias:
@@ -170,6 +169,7 @@ class Net:
     """
 
     def __init__(self, name: str, learning_rate=0.5):
+        self.learning_curve_data = None
         self.learning_progress = []
         self.layers = []
         self.setName(name)
@@ -272,14 +272,13 @@ class Net:
         total_error = 0
         for index in range(len(self.getLayer(0).getNeurons())):
             total_error += np.sum((0.5 * (self.getExpectedResults()[index] - self.get_results()[index]) ** 2))
-            self.learning_curve_data.append(total_error)
+        self.learning_curve_data.append(total_error)
         return total_error
         
     def backPropagate(self):
         self.forwardPropagate()
         total_error = self.calculateTotalError()
         print(total_error)
-        total_error += np.sum((0.5 * (self.getExpectedResults().T - self.get_results()) ** 2))
         for j in range(len(self.getLayers()) - 1, 0, -1):
             for weight_index in range(len(self.getLayer(j).getWeights())):
                 if j == len(self.getLayers()) - 1:

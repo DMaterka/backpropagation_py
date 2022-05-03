@@ -9,8 +9,8 @@ class TestStorage(unittest.TestCase):
     """Testing reading and writing network to db"""
 
     def setUp(self):
-        dotenv.load_dotenv('../.env.testing')
-        inputfile = 'xor.csv'
+        dotenv.load_dotenv('../../.env.testing')
+        inputfile = 'mmazur_example.csv'
         learning_rate = 0.5
         structure = "[2]"
         self.model_name = 'storage_test_model'

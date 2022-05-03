@@ -9,7 +9,7 @@ class TestXORNetwork(unittest.TestCase):
 
     def setUp(self):
         # train the network
-        self.net = backpropagation.Net("xor.csv", 1)
+        self.net = backpropagation.Net("mmazur_example.csv", 1)
         # set hidden layer
         hiddenLayer = backpropagation.Layer()
         hiddenLayer.setNeurons([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])

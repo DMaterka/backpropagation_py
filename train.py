@@ -86,7 +86,7 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
 
 if __name__ == "__main__":
     # default parameters
-    inputfile = 'xor.csv'
+    inputfile = 'mmazur_example.csv'
     outputfile = ''
     iterations = 1
     argv = sys.argv[1:]
