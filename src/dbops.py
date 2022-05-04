@@ -21,13 +21,14 @@ class DbOps:
             partial_path = '../data/' + db_name
 
         self.db_path = script_path + '/' + partial_path
-        if not os.path.exists(self.db_path):
-            print('Database does not exist, create one')
-            exit(1)
+        # if not os.path.exists(self.db_path):
+        #     print('Database does not exist, create one at ' + self.db_path)
+        #     exit(1)
 
         self.conn = sqlite3.connect(self.db_path)
 
     def createSchema(self, name):
+        print('Creating a database in ' + name)
         self.conn = sqlite3.connect(name)
         c = self.conn.cursor()
         c.execute('''CREATE TABLE models (id integer PRIMARY KEY, name text, error real)''')
@@ -48,6 +49,7 @@ class DbOps:
             '''CREATE TABLE weights (id integer PRIMARY KEY, neuron_from integer, neuron_to integer, weight json)''')
         self.conn.commit()
         self.conn.close()
+        print('Database created successfully')
 
     def save_net(self, net: backpropagation.Net, total_error, model_name):
         self.conn.row_factory = sqlite3.Row
@@ -129,6 +131,10 @@ class DbOps:
         c = self.conn.cursor()
         c.execute('SELECT * FROM models WHERE name=?', (model_name,))
         results = c.fetchone()
+
+        if results is None:
+            return None
+
         net = backpropagation.Net(results['name'], 0.5)
         modelid = results['id']
         c.execute('SELECT * FROM layers WHERE model_id=?', (modelid,))

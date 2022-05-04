@@ -8,18 +8,22 @@ import os
 import dotenv
 
 
-def predict(net: Net):
+def predict(net: Net, values):
     inputfile = net.getName()
-    if 'testing' in os.environ and os.environ['testing'] == 1:
+    dotenv.load_dotenv('.env')
+    if os.environ['TESTING']:
         dotenv.load_dotenv('.env.testing')
+        dbname = 'data/test/' + os.environ['DB_NAME']
     else:
         dotenv.load_dotenv('.env')
+        dbname = 'data/' + os.environ['DB_NAME']
         
-    conn = sqlite3.connect('data/' + os.environ['DB_NAME'])
+    conn = sqlite3.connect(dbname)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (inputfile,))
     model = c.fetchone()
+    print(model)
     c.execute('SELECT * FROM layers WHERE model_id=?', (model['id'],))
     layers = c.fetchall()
     for counter, layer in enumerate(layers):
@@ -44,7 +48,9 @@ def predict(net: Net):
         net.setLayer(layer['layer_index'], net_layer)
     
     conn.close()
-    
+
+    net.setInputs(values)
+
     # do the actual prediction
     net.forwardPropagate()
     return net
@@ -69,7 +75,9 @@ if __name__ == "__main__":
             inputfile = arg
         elif opt in ("-o", "--ofile"):
             outputfile = arg
-            
+    if (inputfile is None):
+        print('the name of the network must be set!')
+        exit(1)
     net = Net(inputfile, int(learning_rate))
-    results = predict(net)
+    results = predict(net, [0.90, 0.90])
     print("The result is ", results.getLayer(len(results.getLayers()) - 1).getValues())

@@ -5,15 +5,17 @@ from src import dbops
 
 if __name__ == "__main__":
     dotenv.load_dotenv('.env')
-    if 'TESTING' in os.environ and os.environ['testing'] == 1:
+    if os.environ['TESTING']:
         dotenv.load_dotenv('.env.testing')
+        dbpath = 'data/test/' + os.environ['DB_NAME']
     else:
         dotenv.load_dotenv('.env')
+        dbpath = 'data/' + os.environ['DB_NAME']
 
-    if os.path.exists('data/' + os.environ['DB_NAME']):
+    if os.path.exists(dbpath):
         print('The database already exists')
         exit(1)
 
     dbops = dbops.DbOps()
-
-    dbops.createSchema('data/' + os.environ['DB_NAME'])
+    dbops.createSchema(dbpath)
+    exit(0)

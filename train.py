@@ -71,7 +71,7 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
     
     total_error = net.calculateTotalError()
     results = dbOpsObject.get_model_results(inputfile)
-    
+
     if results is None:
         dbOpsObject.save_net(net, total_error, inputfile)
         print("The model has been saved")
@@ -79,14 +79,14 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
         dbOpsObject.update_net(net, total_error, inputfile)
         print("The model has been updated")
     else:
-        print("Total error is the same as previous one")
+        print("Total error is not smaller or equal to the previous one")
     
     return net
 
 
 if __name__ == "__main__":
     # default parameters
-    inputfile = 'mmazur_example.csv'
+    inputfile = ''
     outputfile = ''
     iterations = 1
     argv = sys.argv[1:]
