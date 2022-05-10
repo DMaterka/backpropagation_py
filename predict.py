@@ -3,7 +3,6 @@ import sys
 import getopt
 from src.backpropagation import Layer, Net, Neuron
 import sqlite3
-import json
 import os
 import dotenv
 
@@ -23,37 +22,54 @@ def predict(net: Net, values):
     c = conn.cursor()
     c.execute('SELECT * FROM models WHERE name=?', (inputfile,))
     model = c.fetchone()
-    print(model)
-    c.execute('SELECT * FROM layers WHERE model_id=?', (model['id'],))
+
+    c.execute('SELECT * FROM layers WHERE model_id=? ORDER BY id', (model['id'],))
     layers = c.fetchall()
-    for counter, layer in enumerate(layers):
-        # set a layer
-        if layer['layer_index'] == 0:
-            continue
+    for layer_counter, layer in enumerate(layers):
         net_layer = Layer()
+
         c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
         neurons = c.fetchall()
+
         for neuron_counter, neuron in enumerate(neurons):
             net_neuron = Neuron()
-            net_neuron.setSum(json.loads(neuron['sum']))
-            net_neuron.setValue(json.loads(neuron['value']))
-            c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'] - 1,))
-            prev_neurons = c.fetchall()
-            for prev_neuron in prev_neurons:
-                c.execute('SELECT * FROM weights WHERE neuron_from=? AND neuron_to=?',
-                          (prev_neuron['id'], neuron['id']))
-                weight = c.fetchone()
-                net_neuron.setWeights(json.loads(weight['weight']), prev_neuron['neuron_index'])
-            net_layer.setNeuron(neuron['neuron_index'], net_neuron)
-        net.setLayer(layer['layer_index'], net_layer)
+
+            if neuron['is_bias']:
+                net_neuron.is_bias = True
+            else:
+                net_neuron.setSum(neuron['sum'])
+                net_neuron.setValue(neuron['value'])
+
+            if layer_counter > 0:
+                c.execute('SELECT id FROM neurons WHERE layer_id=? ',
+                          (layers[layer_counter-1]['id'],))
+                c.row_factory = single_result_factory
+                prev_layer_neurons = c.fetchall()
+                c.row_factory = sqlite3.Row
+                converted_list = [str(element) for element in prev_layer_neurons]
+                c.execute("SELECT weight FROM weights WHERE neuron_from IN (" + ",".join(converted_list) + ") AND neuron_to=?",
+                          (neuron['id'],))
+                weights = c.fetchall()
+                for weight_ind, weight in enumerate(weights):
+                    net_neuron.setWeights(weight['weight'], weight_ind)
+            else:
+                if neuron['is_bias'] == 0:
+                    net_neuron.setValue(values[neuron_counter])
+                    net_neuron.setSum(values[neuron_counter])
+            net_layer.setNeuron(neuron_counter + 1, net_neuron)
+
+        net.setLayer(layer_counter, net_layer)
     
     conn.close()
-
     net.setInputs(values)
 
     # do the actual prediction
     net.forwardPropagate()
     return net
+
+
+def single_result_factory(cursor, row):
+    return row[0]
 
 
 if __name__ == "__main__":
@@ -79,5 +95,9 @@ if __name__ == "__main__":
         print('the name of the network must be set!')
         exit(1)
     net = Net(inputfile, int(learning_rate))
-    results = predict(net, [0.90, 0.90])
-    print("The result is ", results.getLayer(len(results.getLayers()) - 1).getValues())
+    results = predict(net, [0.1001, 0.0002])
+
+    if results.getLayer(len(results.getLayers()) - 1).getValues() > 0.5:
+        print("activated ", results.getLayer(len(results.getLayers()) - 1).getValues() )
+    else:
+        print("not activated ", results.getLayer(len(results.getLayers()) - 1).getValues())

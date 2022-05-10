@@ -39,8 +39,8 @@ class DbOps:
                     id integer PRIMARY KEY,
                     neuron_index integer,
                     layer_id integer,
-                    sum json,
-                    value json,
+                    sum double,
+                    value double,
                     is_bias bool DEFAULT FALSE
                 )
             '''
@@ -65,8 +65,8 @@ class DbOps:
                     'INSERT INTO neurons (neuron_index, layer_id, sum, value) VALUES (?, ?, ?, ?)', (
                         neuron_index,
                         layerid,
-                        json.dumps(current_neuron.getSum().tolist()),
-                        json.dumps(current_neuron.getValue().tolist())
+                        current_neuron.getSum().tolist(),
+                        current_neuron.getValue().tolist()
                     )
                 )
                 neuron_id = c.lastrowid
@@ -95,8 +95,7 @@ class DbOps:
                 for next_layer_neuron_index in range(len(net.getLayer(layer_index + 1).getNeurons())):
                     c.execute(
                         'INSERT INTO weights (neuron_from, neuron_to, weight) VALUES (?, ?, ?)',
-                        (bias_id, bias_id + next_layer_neuron_index + 1,
-                         json.dumps(bias.getWeights()[next_layer_neuron_index]))
+                        (bias_id, bias_id + next_layer_neuron_index + 1, bias.getWeights()[next_layer_neuron_index])
                     )
         self.conn.commit()
         self.conn.close()

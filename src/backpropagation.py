@@ -256,6 +256,8 @@ class Net:
             
             """ produce neurons' sums and values """
             for j in range(len(nextLayer.getNeurons())):
+                if nextLayer.getNeuron(j).is_bias:
+                    continue
                 weights = nextLayer.getNeuron(j).getWeights()
                 
                 if i == 0:
@@ -263,8 +265,6 @@ class Net:
                 else:
                     values = currentLayer.getValues()
                 sum = np.dot(weights, values)
-                if currentLayer.getBias() is not None:
-                    sum += currentLayer.getBiasWeights()[j] * 1
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
 
