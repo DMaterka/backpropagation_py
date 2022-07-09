@@ -7,5 +7,5 @@ nb-configuration.xml
 data/*
 !data/test/mmazur_example.csv
 !data/xor.csv
-
+venv
 .env

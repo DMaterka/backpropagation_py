@@ -146,13 +146,10 @@ class DbOps:
             bias_weights = []
             for neuron in neurons:
                 if neuron['is_bias'] == 1:
-                    current_bias = backpropagation.Neuron(True)
-                    current_bias.setValue(1)
                     c.execute(
                         'SELECT weight FROM weights WHERE neuron_from=?', (neuron['id'],)
                     )
                     db_weights = c.fetchone()['weight']
-                    # current_bias.setWeights(db_weights)
                     bias_weights.append(db_weights)
                 else:
                     current_neuron = backpropagation.Neuron()
@@ -163,7 +160,7 @@ class DbOps:
                         'ON `weights`.`neuron_from`=`neurons`.`id`'
                         'WHERE `weights`.`neuron_to`=?'
                         'AND `neurons`.`is_bias`=?',
-                        (neuron['id'], 'FALSE')
+                        (neuron['id'], '0')
                     )
                     db_weights = c.fetchall()
                     db_weights = np.array(db_weights).flatten()

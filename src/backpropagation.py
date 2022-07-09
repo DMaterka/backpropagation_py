@@ -267,7 +267,7 @@ class Net:
                 sum = np.dot(weights, values)
                 nextLayer.getNeuron(j).setSum(sum)
                 nextLayer.getNeuron(j).setValue(ActivationFn().sigmoid(sum))
-
+        return self
     def calculateTotalError(self):
         total_error = 0
         for index in range(len(self.getExpectedResults())):
