@@ -3,6 +3,7 @@ import ast
 import sys
 import getopt
 import dotenv
+from src.operations import Operations
 
 import src.dbops
 
@@ -36,12 +37,12 @@ if __name__ == "__main__":
     for ind, neuron in enumerate(neurons):
         neuron.setValue(evalueatedVal[ind])
         neuron.setSum(evalueatedVal[ind])
-    predicted_net = net.forwardPropagate()
+    predicted_net = Operations().forwardPropagate(net)
 
-    print("result: ", net.get_results()[0])
+    print("result: ", Operations().get_results(net)[0])
     print("sum: ", net.getLayer(2).getNeuron(0).getSum())
 
-    if net.get_results()[0] > 0.5:
+    if Operations().get_results(net)[0] > 0.5:
         print("Activated")
     else:
         print("Not Activated")

@@ -5,7 +5,7 @@ nb-configuration.xml
 .idea/
 .idea/*
 data/*
-!data/test/mmazur_example.csv
+!data/test
 !data/xor.csv
 venv
 .env

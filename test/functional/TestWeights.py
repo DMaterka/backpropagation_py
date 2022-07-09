@@ -9,7 +9,7 @@ class TestWeights(unittest.TestCase):
     (in contrary to lists and multidimensional arrays)"""
 
     def setUp(self):
-        dotenv.load_dotenv('../.env.testing')
+        dotenv.load_dotenv('../../.env.testing')
         inputfile = 'xor2.csv'
         learning_rate = 0.5
         structure = "[3]"

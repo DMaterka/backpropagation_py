@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-from src import backpropagation, visualise, dbops
+from src import operations, visualise, dbops
+from src.DTO.layer import Layer
 import numpy as np
 import ast
 import dotenv
@@ -10,7 +11,7 @@ import pandas as pd
 
 
 def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
-    net = backpropagation.Net(inputfile, float(learning_rate))
+    net = operations.Net(inputfile, float(learning_rate))
     if hidden_structure:
         structure = ast.literal_eval(hidden_structure)
     else:
@@ -22,7 +23,7 @@ def prepare_net(hidden_structure, learning_rate, training_sets, inputfile):
     structure.append(len(training_sets[0][1]))
     
     for index, value in enumerate(structure):
-        layer = backpropagation.Layer()
+        layer = Layer()
         layer.setNeurons(np.ones([value]))
         # todo set weights randomly if none provided
         if index > 0:
@@ -63,13 +64,13 @@ def perform_training(net, iterations, training_sets, inputfile, batch_size=1):
         inputs, outputs = training_sets[modulo]
         net.getLayer(0).setNeurons(inputs, False)
         net.setExpectedResults(outputs)
-        net.backPropagate()
+        operations.Operations().backPropagate(net)
 
     
     visualise.print_learning_curve(net.learning_curve_data)
     visualise.print_decision_regions(training_sets, net)
     
-    total_error = net.calculateTotalError()
+    total_error = operations.Operations().calculateTotalError(net)
     results = dbOpsObject.get_model_results(inputfile)
 
     if results is None:
@@ -125,4 +126,4 @@ if __name__ == "__main__":
     
     visualise.print_network(trained_net)
     
-    print("result is", trained_net.get_results())
+    print("result is", operations.Operations().get_results(trained_net))

@@ -2,13 +2,14 @@ import unittest
 import numpy as np
 import train
 import dotenv
+from src.operations import Operations
 
 class Test0DNetwork(unittest.TestCase):
     """Testing the neural network structure where the network elements are numbers
     (in contrary to lists and multidimensional arrays)"""
 
     def setUp(self):
-        dotenv.load_dotenv('../.env.testing')
+        dotenv.load_dotenv('../../.env.testing')
         inputfile = 'xor2.csv'
         learning_rate = 0.5
         structure = "[3]"
@@ -23,7 +24,8 @@ class Test0DNetwork(unittest.TestCase):
         
     def test_forwardpropagation(self):
         """Testing network value after forwardpropagation"""
-        self.net.forwardPropagate()
+
+        Operations().forwardPropagate(self.net)
         # get network result
         value = self.net.getLayer(2).getNeuron(0).getValue()
         print(value)

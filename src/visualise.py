@@ -1,6 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
-from src import backpropagation
+from src import operations
 
 
 def print_learning_curve(curve_data):
@@ -10,7 +10,7 @@ def print_learning_curve(curve_data):
     plt.show()
 
 
-def print_network(net: backpropagation.Net):
+def print_network(net: operations.Net):
     matplotlib.use('TkAgg')
     """ Print network structure - neuron and connected weights"""
     fig, axs = plt.subplots()
@@ -49,7 +49,7 @@ def print_network(net: backpropagation.Net):
     plt.show()
 
 
-def print_decision_regions(training_sets, net: backpropagation.Net):
+def print_decision_regions(training_sets, net: operations.Net):
     inputs = [[], []]
     data = {0: {0: [], 1: []}, 1: {0: [], 1: []}}
     for inp in range(len(training_sets)):
@@ -58,8 +58,8 @@ def print_decision_regions(training_sets, net: backpropagation.Net):
             inputs[i].append(init[i])
             net.getLayer(0).setNeurons(init)
             net.setExpectedResults(expected)
-            net.forwardPropagate()
-        color_index = net.get_results()[0]
+            operations.Operations().forwardPropagate(net)
+        color_index = operations.Operations().get_results(net)[0]
         if color_index > 0.5:
             color_index = 1
         else:

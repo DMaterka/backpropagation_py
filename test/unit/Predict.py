@@ -2,6 +2,7 @@ import unittest
 
 import dotenv
 import src.dbops
+from src.operations import Operations
 
 
 class Predict(unittest.TestCase):
@@ -17,8 +18,9 @@ class Predict(unittest.TestCase):
         for ind, neuron in enumerate(neurons):
             neuron.setValue(values[ind])
             neuron.setSum(values[ind])
-        self.net.forwardPropagate()
-        self.assertGreater(self.net.get_results()[0], 0.5)
+        operations = Operations()
+        operations.forwardPropagate(self.net)
+        self.assertGreater(operations.get_results(self.net)[0], 0.5)
 
     def test_xor2(self):
         values = [0.75, 0.75]
@@ -27,8 +29,9 @@ class Predict(unittest.TestCase):
         for ind, neuron in enumerate(neurons):
             neuron.setValue(values[ind])
             neuron.setSum(values[ind])
-        self.net.forwardPropagate()
-        self.assertLess(self.net.get_results()[0], 0.5)
+        operations = Operations()
+        operations.forwardPropagate(self.net)
+        self.assertLess(operations.get_results(self.net)[0], 0.5)
 
     def test_xor3(self):
         values = [-0.25, 0.75]
@@ -37,8 +40,9 @@ class Predict(unittest.TestCase):
         for ind, neuron in enumerate(neurons):
             neuron.setValue(values[ind])
             neuron.setSum(values[ind])
-        self.net.forwardPropagate()
-        self.assertGreater(self.net.get_results()[0], 0.5)
+        operations = Operations()
+        operations.forwardPropagate(self.net)
+        self.assertGreater(operations.get_results(self.net)[0], 0.5)
 
     def test_xor4(self):
         values = [-0.25, -0.25]
@@ -47,8 +51,9 @@ class Predict(unittest.TestCase):
         for ind, neuron in enumerate(neurons):
             neuron.setValue(values[ind])
             neuron.setSum(values[ind])
-        self.net.forwardPropagate()
-        self.assertLess(self.net.get_results()[0], 0.5)
+        operations = Operations()
+        operations.forwardPropagate(self.net)
+        self.assertLess(operations.get_results(self.net)[0], 0.5)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,6 @@
-from src import backpropagation
+from src.DTO.layer import Layer
+from src.DTO.net import Net
+from src.DTO.neuron import Neuron
 import sqlite3
 import json
 import os
@@ -51,7 +53,7 @@ class DbOps:
         self.conn.close()
         print('Database created successfully')
 
-    def save_net(self, net: backpropagation.Net, total_error, model_name):
+    def save_net(self, net: Net, total_error, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
         c.execute('INSERT INTO models (name, error) VALUES (?, ?)', (model_name, total_error))
@@ -100,7 +102,7 @@ class DbOps:
         self.conn.commit()
         self.conn.close()
 
-    def update_net(self, net: backpropagation.Net, total_error, model_name):
+    def update_net(self, net: Net, total_error, model_name):
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
         c.execute('SELECT * FROM models WHERE name=?', (model_name,))
@@ -125,7 +127,7 @@ class DbOps:
         self.conn.commit()
         self.conn.close()
 
-    def load_net(self, model_name):
+    def load_net(self, model_name) -> Net:
         self.conn.row_factory = sqlite3.Row
         c = self.conn.cursor()
         c.execute('SELECT * FROM models WHERE name=?', (model_name,))
@@ -134,12 +136,12 @@ class DbOps:
         if results is None:
             return None
 
-        net = backpropagation.Net(results['name'], 0.5)
+        net = Net(results['name'], 0.5)
         modelid = results['id']
         c.execute('SELECT * FROM layers WHERE model_id=?', (modelid,))
         layers = c.fetchall()
         for layer in layers:
-            current_layer = backpropagation.Layer()
+            current_layer = Layer()
             c.execute('SELECT * FROM neurons WHERE layer_id=?', (layer['id'],))
             neurons = c.fetchall()
             neuron_weights = []
@@ -152,8 +154,9 @@ class DbOps:
                     db_weights = c.fetchone()['weight']
                     bias_weights.append(db_weights)
                 else:
-                    current_neuron = backpropagation.Neuron()
+                    current_neuron = Neuron()
                     current_neuron.setValue(neuron['value'])
+                    current_neuron.setSum(neuron['sum'])
                     c.execute(
                         'SELECT weight FROM `weights`'
                         'LEFT JOIN `neurons`'
