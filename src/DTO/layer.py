@@ -84,6 +84,12 @@ class Layer:
 
     def setWeights(self, weights: list):
         self.weights = np.array(weights)
+
+        if len(self.neurons) != len(weights):
+            raise Exception(
+                "Bad weights size. Expected weights size is the same as neurons size = " + str(len(self.neurons))
+            )
+
         for i in range(len(weights)):
             self.getNeuron(i).setWeights(weights[i])
         return self

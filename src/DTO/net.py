@@ -1,8 +1,6 @@
 import numpy as np
 from .layer import Layer
 
-debug=0
-
 
 class Net:
     """ contains layers
@@ -12,7 +10,7 @@ class Net:
     """
 
     def __init__(self, name: str, learning_rate=0.5):
-        self.learning_curve_data = None
+        self.learning_curve_data = []
         self.learning_progress = []
         self.layers = []
         self.setName(name)

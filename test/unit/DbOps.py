@@ -13,7 +13,14 @@ class TestStorage(unittest.TestCase):
         inputfile = 'mmazur_example.csv'
         self.model_name = 'storage_test_model'
         training_sets = train.prepare_training_sets(inputfile)
-        self.net = train.prepare_net(hidden_structure="[2]", learning_rate=0.5, training_sets=training_sets, inputfile=inputfile)
+
+        self.net = train.prepare_net(
+            hidden_structure="[2]",
+            learning_rate=0.5,
+            training_sets=training_sets,
+            inputfile=inputfile
+        )
+
         dbOpsObject = dbops.DbOps()
         self.net.getLayer(0).setBias([.35, .35])
         self.net.getLayer(1).setWeights([[.15, .2], [.25, .3]]).setBias([.6, .6])
@@ -68,6 +75,7 @@ class TestStorage(unittest.TestCase):
     def tearDown(self) -> None:
         dbOpsObject = dbops.DbOps()
         dbOpsObject.delete_model(self.model_name)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
