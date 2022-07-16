@@ -1,4 +1,4 @@
-debug=0
+import os
 import numpy as np
 
 
@@ -16,12 +16,13 @@ class Neuron:
         self.weights = []
         self.deltaSum = None
         self.position = None
+        self.debug = os.getenv('DEBUG', False) == True
 
     def setValue(self, value):
         if self.is_bias:
             raise Exception("Bias value or sum cannot be set")
         self.value = np.array(value)
-        if debug:
+        if self.debug:
             print("   I assign a value of " + str(self.value) + " to the neuron " + str(self))
         return self
 
@@ -34,7 +35,7 @@ class Neuron:
         if self.is_bias:
             raise Exception("Bias value or sum cannot be set")
         self.sum = np.array(sum)
-        if debug:
+        if self.debug:
             print(" I assign a sum of " + str(self.sum) + " to the neuron " + str(self))
 
     def getSum(self):

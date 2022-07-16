@@ -1,8 +1,7 @@
 import numpy as np
 from .neuron import Neuron
 from ..activation import ActivationFn
-
-debug=0
+import os
 
 
 class Layer:
@@ -16,13 +15,14 @@ class Layer:
         self.weights = []
         self.bias = None
         self.deltaSums = []
+        self.debug = os.getenv('DEBUG', False) == True
 
     def setNeurons(self, sums, activate=True):
         sums = np.array(sums)
 
         self.neurons = [Neuron() for i in range(0, len(sums))]
         for i in range(len(sums)):
-            if debug:
+            if self.debug:
                 print("  I insert a " + str(i) + " neuron: " + str(self.neurons[i]) + " of layer " + str(self))
             self.neurons[i].setSum(sums[i])
             if activate == True:

@@ -5,27 +5,25 @@ import sqlite3
 import json
 import os
 import numpy as np
+import re
 
 
 class DbOps:
 
-    def __init__(self, db_name=''):
-        # todo Move it to independent module for global usage
+    def __init__(self, db_name):
         script_path = os.path.dirname(os.path.realpath(__file__))
+        db_name = re.sub('\..*', '', db_name) + '.db'
 
-        if db_name == '':
-            """ A default database name given"""
-            db_name = os.environ['DB_NAME']
-
-        if 'TESTING' in os.environ:
+        if os.getenv('TESTING', False) == True:
             partial_path = '../data/test/' + db_name
         else:
             partial_path = '../data/' + db_name
 
         self.db_path = script_path + '/' + partial_path
-        # if not os.path.exists(self.db_path):
-        #     print('Database does not exist, create one at ' + self.db_path)
-        #     exit(1)
+
+        if not os.path.exists(self.db_path):
+            print('Database does not exist, creting one at ' + self.db_path)
+            self.createSchema(self.db_path)
 
         self.conn = sqlite3.connect(self.db_path)
 

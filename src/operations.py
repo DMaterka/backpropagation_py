@@ -1,11 +1,12 @@
 import numpy as np
 from .DTO.net import Net
 from .activation import ActivationFn
-
-debug = 0
-
+import os
 
 class Operations:
+
+    def __init__(self):
+        self.debug = os.getenv('DEBUG', False) == True
 
     def forwardPropagate(self, net: Net) -> Net:
         """ calculate network values from weights and activation function"""
@@ -87,4 +88,21 @@ class Operations:
 
     def get_results(self, net):
         return net.getLayer(len(net.getLayers()) - 1).getValues()
-    
+
+    def predict(self, net, values):
+        net.setInputs(values)
+        neurons = net.getLayer(0).getNeurons()
+        for ind, neuron in enumerate(neurons):
+            neuron.setValue(values[ind])
+            neuron.setSum(values[ind])
+        Operations().forwardPropagate(net)
+
+        if self.debug:
+            print("result: ", Operations().get_results(net)[0])
+            print("sum: ", net.getLayer(2).getNeuron(0).getSum())
+
+        if Operations().get_results(net)[0] > 0.5:
+            return 1
+        else:
+            return 0
+

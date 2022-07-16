@@ -4,15 +4,16 @@ import sys
 import getopt
 import dotenv
 from src.operations import Operations
-
 import src.dbops
+
 
 if __name__ == "__main__":
     inputfile = ''
     values = ''
     argv = sys.argv[1:]
     learning_rate = 1
-    dotenv.load_dotenv('.env.testing')
+    dotenv.load_dotenv('.env')
+
     try:
         opts, args = getopt.getopt(argv, "hi:v:", ["ifile=", "values="])
     except getopt.GetoptError:
@@ -30,19 +31,11 @@ if __name__ == "__main__":
         print('the name of the model must be set!')
         exit(1)
 
+    net = src.dbops.DbOps(inputfile).load_net(inputfile)
     evalueatedVal = ast.literal_eval(values)
-    net = src.dbops.DbOps().load_net(inputfile)
-    net.setInputs(evalueatedVal)
-    neurons = net.getLayer(0).getNeurons()
-    for ind, neuron in enumerate(neurons):
-        neuron.setValue(evalueatedVal[ind])
-        neuron.setSum(evalueatedVal[ind])
-    predicted_net = Operations().forwardPropagate(net)
+    result = Operations().predict(net, evalueatedVal)
 
-    print("result: ", Operations().get_results(net)[0])
-    print("sum: ", net.getLayer(2).getNeuron(0).getSum())
-
-    if Operations().get_results(net)[0] > 0.5:
+    if result == 1:
         print("Activated")
     else:
-        print("Not Activated")
+        print("Not activated")

@@ -1,5 +1,6 @@
 import numpy as np
 from .layer import Layer
+import os
 
 
 class Net:
@@ -15,6 +16,7 @@ class Net:
         self.layers = []
         self.setName(name)
         self.learning_rate = learning_rate
+        self.debug = os.getenv('DEBUG', False) == True
 
     def setLayer(self, index, layer: Layer):
         self.getLayers().insert(index, layer)
