@@ -50,20 +50,10 @@ def print_network(net: operations.Net):
 
 
 def print_decision_regions(training_sets, net: operations.Net):
-    inputs = [[], []]
     data = {0: {0: [], 1: []}, 1: {0: [], 1: []}}
     for inp in range(len(training_sets)):
         init, expected = training_sets[inp]
-        for i in range(len(init)):
-            inputs[i].append(init[i])
-            net.getLayer(0).setNeurons(init)
-            net.setExpectedResults(expected)
-            operations.Operations().forwardPropagate(net)
-        color_index = operations.Operations().get_results(net)[0]
-        if color_index > 0.5:
-            color_index = 1
-        else:
-            color_index = 0
+        color_index = operations.Operations().predict(net, init)
         data[color_index][0].append(init[0])
         data[color_index][1].append(init[1])
 

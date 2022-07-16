@@ -161,5 +161,3 @@ if __name__ == "__main__":
         )
 
     visualise.print_network(trained_net)
-    
-    print("result is", operations.Operations().get_results(trained_net))
